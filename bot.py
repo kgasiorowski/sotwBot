@@ -15,19 +15,6 @@ async def on_ready():
     logger.info('Bot started')
 
 @bot.command(description='''
-This sets the channel that this bot will use. If not set, the bot will simply respond in the same channel. 
-The bot will still listen to all channels for commands.
-''')
-async def setChannel(context: Context, channel: discord.TextChannel):
-    if not checkRole(context):
-        await sendMessage(context, config.PERMISSION_ERROR_MESSAGE)
-        logger.info(f'User {context.author.name} tried to set the bot channel to {channel.name}')
-    else:
-        config.set(context.guild.id, config.BOT_CHANNEL, channel.id)
-        await sendMessage(context, 'Bot channel successfully set')
-        logger.info(f'User {context.author.name} successfully set the bot channel to {channel.name}')
-
-@bot.command(description='''
 This sets the user role which can interact with the bot. 
 If no role is set, it will default to any role with "Admin" in the name.
 ''')
