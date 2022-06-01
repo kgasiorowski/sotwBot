@@ -13,7 +13,8 @@ async def on_ready():
 
 @bot.command(description='''
 This sets the channel that this bot will use. If not set, the bot will simply respond in the same channel. 
-The bot will still listen to all channels for commands.''')
+The bot will still listen to all channels for commands.
+''')
 async def setChannel(context: Context, channel: discord.TextChannel):
     if not checkRole(context):
         await sendMessage(context, config.PERMISSION_ERROR_MESSAGE)
@@ -21,8 +22,10 @@ async def setChannel(context: Context, channel: discord.TextChannel):
         config.set(context.guild.id, config.BOT_CHANNEL, channel.id)
         await sendMessage(context, 'Bot channel successfully set')
 
-@bot.command(description='''This sets the user role which can interact with the bot. 
-If no role is set, it will default to any role with "Admin" in the name.''')
+@bot.command(description='''
+This sets the user role which can interact with the bot. 
+If no role is set, it will default to any role with "Admin" in the name.
+''')
 async def setRole(context: Context, role: discord.Role):
     if not checkRole(context):
         await sendMessage(context, config.PERMISSION_ERROR_MESSAGE)
