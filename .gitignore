@@ -3,4 +3,4 @@ venv
 __pycache__
 secret.py
 config.json
-logfile.log
+logs
