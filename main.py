@@ -33,6 +33,15 @@ async def setRole(context: Context, role: discord.Role):
         config.set(context.guild.id, config.ADMIN_ROLE, role.id)
         await sendMessage(context, 'Mod role successfully set')
 
+@bot.command(description='''
+This is a command purely used for testing.
+''')
+async def test(context: Context, message: str):
+    if not checkRole(context):
+        await sendMessage(context, config.PERMISSION_ERROR_MESSAGE)
+    else:
+        await sendMessage(context, f'You said {message}')
+
 async def sendMessage(context: Context, content: str):
     guild_id = context.guild.id
     channel = context.guild.get_channel(config.get(guild_id, config.BOT_CHANNEL))
