@@ -7,7 +7,7 @@ def initLogger():
 
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
-    ch.setStream(open('logs/logfile.log', 'a'))
+    ch.setStream(open('../logs/logfile.log', 'a'))
 
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     ch.setFormatter(formatter)

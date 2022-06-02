@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord.ext.commands.context import Context
 import secret
 from config import config
-import logger
+from utils import logger
 
 bot = commands.Bot(command_prefix='!', description='Testing description', intents=discord.Intents.default())
 config = config.Config()
