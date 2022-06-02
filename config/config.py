@@ -8,11 +8,11 @@ class Config:
     PERMISSION_ERROR_MESSAGE = 'You lack the required role to interact with this bot.'
 
     def __init__(self):
-        with open('config.json', 'r') as configFile:
+        with open('./config/config.json', 'r') as configFile:
             self.configs = json.load(configFile)
 
     def save(self):
-        with open('config.json', 'w') as configFile:
+        with open('./config/config.json', 'w') as configFile:
             json.dump(self.configs, configFile)
 
     def set(self, guildId: str, key, value):
