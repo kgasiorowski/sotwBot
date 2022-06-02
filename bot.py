@@ -15,7 +15,7 @@ async def on_ready():
     logger.info('Bot started')
 
 async def adminRunCallback(context: Context):
-    if not checkRole(context):
+    if not userCanDoAdmin(context):
         await sendMessage(context, config.PERMISSION_ERROR_MESSAGE)
         logger.info(f'User {context.author.name} tried to perform an admin action: {context.invoked_subcommand}')
         return False
@@ -84,7 +84,7 @@ async def sendMessage(context: Context, content: str):
     await channel.send(content)
     logger.info(f'Bot sent the following message to {context.channel.name}: {content}')
 
-def checkRole(context: Context):
+def userCanDoAdmin(context: Context):
     allowedRoleId = config.get(context.guild.id, config.ADMIN_ROLE)
     if allowedRoleId is None:
         for role in context.author.roles:
