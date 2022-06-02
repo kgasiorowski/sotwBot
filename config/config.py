@@ -1,10 +1,11 @@
 import json
 
 class Config:
-    ADMIN_ROLE = 'adminRole'
-    BOT_CHANNEL = 'botChannel'
-    CLAN_NAME = 'clanName'
-    SOTW_NUMBER = 'sotwNumber'
+    ADMIN_ROLE = 'admin_role'
+    BOT_ADMIN_CHANNEL = 'bot_admin_channel'
+    BOT_PUBLIC_CHANNEL = 'bot_public_channel'
+    CLAN_NAME = 'clan_name'
+    SOTW_NUMBER = 'SOTW_number'
     PERMISSION_ERROR_MESSAGE = 'You lack the required role to interact with this bot.'
 
     def __init__(self):

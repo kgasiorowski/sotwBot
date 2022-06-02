@@ -14,9 +14,18 @@ async def on_ready():
     print(f'Logged in')
     logger.info('Bot started')
 
+@bot.command()
+async def register(context: Context, osrsUsername: str):
+    guildId = context.guild.id
+    discordUserId = context.author.id
+    config.addParticipant(guildId, osrsUsername, discordUserId)
+
+    responseMessage = await sendMessage()
+
+
 async def adminRunCallback(context: Context):
     if not userCanDoAdmin(context):
-        await sendMessage(context, config.PERMISSION_ERROR_MESSAGE)
+        await sendMessage(context, config.PERMISSION_ERROR_MESSAGE, isAdmin=False)
         logger.info(f'User {context.author.name} tried to perform an admin action: {context.invoked_subcommand}')
         return False
     return True
@@ -26,22 +35,32 @@ async def admin(context: Context):
     pass
 
 @admin.command()
-async def setRole(context: Context, role: discord.Role):
+async def setAdminRole(context: Context, role: discord.Role):
     """Sets the user role which can interact with the bot
     If no role is set, it will default to any role with "Admin" in the name.
     """
     config.set(context.guild.id, config.ADMIN_ROLE, role.id)
-    await sendMessage(context, 'Mod role successfully set')
+    await sendMessage(context, 'Mod role successfully set', isAdmin=True)
     logger.info(f'User {context.author.name} successfully set the bot role to {role.name}')
 
 @admin.command()
-async def setChannel(context: Context, channel: discord.TextChannel):
-    """This sets the channel that this bot will use
+async def setAdminChannel(context: Context, channel: discord.TextChannel):
+    """This sets the channel that this bot will use for admin purposes
     If not set, the bot will simply respond in the same channel.
     The bot will still listen to all channels for commands.
     """
-    config.set(context.guild.id, config.BOT_CHANNEL, channel.id)
-    await sendMessage(context, 'Bot channel successfully set')
+    config.set(context.guild.id, config.BOT_ADMIN_CHANNEL, channel.id)
+    await sendMessage(context, 'Bot admin channel successfully set', isAdmin=True)
+    logger.info(f'User {context.author.name} successfully set the bot channel to {channel.name}')
+
+@admin.command()
+async def setPublicChannel(context: Context, channel: discord.TextChannel):
+    """This sets the channel that this bot will use for admin purposes
+    If not set, the bot will simply respond in the same channel.
+    The bot will still listen to all channels for commands.
+    """
+    config.set(context.guild.id, config.BOT_PUBLIC_CHANNEL, channel.id)
+    await sendMessage(context, 'Bot public channel successfully set', isAdmin=True)
     logger.info(f'User {context.author.name} successfully set the bot channel to {channel.name}')
 
 @admin.command()
@@ -50,7 +69,7 @@ async def setClanName(context: Context, clanName: str):
     """
     config.set(context.guild.id, config.CLAN_NAME, clanName)
     logger.info(f'User {context.author.name} set a configuration value: {config.CLAN_NAME} -> {clanName}')
-    await sendMessage(context, 'Successfully updated clan name')
+    await sendMessage(context, 'Successfully updated clan name', isAdmin=True)
 
 @admin.command()
 async def getClanName(context: Context):
@@ -58,7 +77,7 @@ async def getClanName(context: Context):
     """
     clanName = config.get(context.guild.id, config.CLAN_NAME)
     logger.info(f'User {context.author.name} sucessfully read a config value: {config.CLAN_NAME} -> {clanName}')
-    await sendMessage(context, f'Clan Name -> {clanName if clanName is not None else "Not set"}')
+    await sendMessage(context, f'Clan Name -> {clanName if clanName is not None else "Not set"}', isAdmin=True)
 
 @admin.command()
 async def setSOTWNumber(context: Context, sotwnumber: int):
@@ -66,7 +85,7 @@ async def setSOTWNumber(context: Context, sotwnumber: int):
     """
     config.set(context.guild.id, config.SOTW_NUMBER, sotwnumber)
     logger.info(f'User {context.author.name} set a configuration value: {config.SOTW_NUMBER} -> {sotwnumber}')
-    await sendMessage(context, 'Successfully updated SOTW number')
+    await sendMessage(context, 'Successfully updated SOTW number', isAdmin=True)
 
 @admin.command()
 async def getSOTWNumber(context: Context):
@@ -74,15 +93,16 @@ async def getSOTWNumber(context: Context):
     """
     sotwNumber = config.get(context.guild.id, config.SOTW_NUMBER)
     logger.info(f'User {context.author.name} sucessfully read a config value: {config.SOTW_NUMBER} -> {sotwNumber}')
-    await sendMessage(context, f'SOTW Number -> {sotwNumber if sotwNumber is not None else "Not set"}')
+    await sendMessage(context, f'SOTW Number -> {sotwNumber if sotwNumber is not None else "Not set"}', isAdmin=True)
 
-async def sendMessage(context: Context, content: str):
+async def sendMessage(context: Context, content: str, isAdmin: bool=False):
     guild_id = context.guild.id
-    channel = context.guild.get_channel(config.get(guild_id, config.BOT_CHANNEL))
+    configKey = config.BOT_ADMIN_CHANNEL if isAdmin else config.BOT_PUBLIC_CHANNEL
+    channel = context.guild.get_channel(config.get(guild_id, configKey))
     if channel is None:
         channel = context.channel
-    await channel.send(content)
     logger.info(f'Bot sent the following message to {context.channel.name}: {content}')
+    return await channel.send(content)
 
 def userCanDoAdmin(context: Context):
     allowedRoleId = config.get(context.guild.id, config.ADMIN_ROLE)
