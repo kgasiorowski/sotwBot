@@ -5,7 +5,7 @@ import secret
 from config import config
 from utils import logger
 
-bot = commands.Bot(command_prefix='!', description='Testing description', intents=discord.Intents.default())
+bot = commands.Bot(command_prefix='!', description='Skill of the Week Bot', intents=discord.Intents.default())
 config = config.Config()
 logger = logger.initLogger()
 
@@ -16,6 +16,11 @@ async def on_ready():
 
 @bot.command()
 async def register(context: Context, osrsUsername: str):
+    """Registers you for upcoming SOTWs
+
+    If your username has spaces in it, please surround it with quotes, or this command will not work properly.
+    Example: !register "Crotch Flame"
+    """
     guildId = context.guild.id
     discordUserId = context.author.id
 
@@ -29,16 +34,32 @@ async def register(context: Context, osrsUsername: str):
     '''
     await sendMessage(context, messageContent, delete_after=30)
 
-async def adminRunCallback(context: Context):
-    if not userCanDoAdmin(context):
-        await sendMessage(context, config.PERMISSION_ERROR_MESSAGE, isAdmin=False)
-        logger.info(f'User {context.author.name} tried to perform an admin action: {context.invoked_subcommand}')
+async def canRunAdmin(context: Context):
+    """
+    Determines if the user invoking the command is allowed to run admin commands.
+    """
+    isAdminUser = False
+    allowedRoleId = config.get(context.guild.id, config.ADMIN_ROLE)
+    if allowedRoleId is None:
+        for role in context.author.roles:
+            if 'admin' in role.name.lower():
+                isAdminUser = True
+                break
+    else:
+        allowedRole = context.guild.get_role(allowedRoleId)
+        isAdminUser = allowedRole in context.author.roles
+
+    if not isAdminUser:
+        if context.invoked_with != 'help':
+            await sendMessage(context, config.PERMISSION_ERROR_MESSAGE, isAdmin=False)
+            logger.info(f'User {context.author.name} tried to perform an admin action: {context.invoked_subcommand}')
         return False
     return True
 
-@bot.group(checks=[adminRunCallback], case_insensitive=True)
+@bot.group(checks=[canRunAdmin], case_insensitive=True)
 async def admin(context: Context):
-    pass
+    """This denotes a command which requires the special admin role to run.
+    """
 
 @admin.command()
 async def setAdminRole(context: Context, role: discord.Role):
@@ -109,17 +130,6 @@ async def sendMessage(context: Context, content: str, isAdmin: bool=False, delet
         channel = context.channel
     logger.info(f'Bot sent the following message to {context.channel.name}: {content}')
     return await channel.send(content, delete_after=delete_after)
-
-def userCanDoAdmin(context: Context):
-    allowedRoleId = config.get(context.guild.id, config.ADMIN_ROLE)
-    if allowedRoleId is None:
-        for role in context.author.roles:
-            if 'admin' in role.name.lower():
-                return True
-        return False
-    else:
-        allowedRole = context.guild.get_role(allowedRoleId)
-        return allowedRole in context.author.roles
 
 if __name__ == "__main__":
     bot.run(secret.TOKEN)
