@@ -45,7 +45,7 @@ async def setChannel(context: Context, channel: discord.TextChannel):
     logger.info(f'User {context.author.name} successfully set the bot channel to {channel.name}')
 
 @admin.command()
-async def setclanname(context: Context, clanName: str):
+async def setClanName(context: Context, clanName: str):
     """Set the clan's name
     """
     config.set(context.guild.id, config.CLAN_NAME, clanName)
@@ -53,7 +53,7 @@ async def setclanname(context: Context, clanName: str):
     await sendMessage(context, 'Successfully updated clan name')
 
 @admin.command()
-async def getclanname(context: Context):
+async def getClanName(context: Context):
     """Retrieves the clan name for the current discord, if set
     """
     clanName = config.get(context.guild.id, config.CLAN_NAME)
@@ -61,7 +61,7 @@ async def getclanname(context: Context):
     await sendMessage(context, f'Clan Name -> {clanName if clanName is not None else "Not set"}')
 
 @admin.command()
-async def setsotwnumber(context: Context, sotwnumber: int):
+async def setSOTWNumber(context: Context, sotwnumber: int):
     """Set the clan's sequential sotw number
     """
     config.set(context.guild.id, config.SOTW_NUMBER, sotwnumber)
@@ -69,7 +69,7 @@ async def setsotwnumber(context: Context, sotwnumber: int):
     await sendMessage(context, 'Successfully updated SOTW number')
 
 @admin.command()
-async def getsotwnumber(context: Context):
+async def getSOTWNumber(context: Context):
     """Retrieves the sotw number for the current discord, if set
     """
     sotwNumber = config.get(context.guild.id, config.SOTW_NUMBER)
