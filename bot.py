@@ -4,6 +4,8 @@ from discord.ext.commands.context import Context
 import secret
 from config import config
 from utils import logger
+import asyncio
+from datetime import datetime
 
 bot = commands.Bot(command_prefix='!', description='Skill of the Week Bot', intents=discord.Intents.default())
 config = config.Config()
@@ -13,6 +15,25 @@ logger = logger.initLogger()
 async def on_ready():
     print(f'Logged in')
     logger.info('Bot started')
+
+@bot.command()
+async def test(context: Context, message: str):
+    """Testing command
+    """
+    datetimeToRun = datetime.strptime('2022-06-02', '%Y-%m-%d')
+    datetimeToRun = datetimeToRun.replace(hour=0, minute=56, second=0)
+    await runFunctionAtTime(datetimeToRun, action, [context, message])
+
+async def runFunctionAtTime(commandDate: datetime, function: callable, args: list):
+    now = datetime.now()
+    then = commandDate
+    delay = (then-now).total_seconds()
+    print(f'Delay: {delay}')
+    await asyncio.sleep(delay)
+    await function(*args)
+
+async def action(context: Context, message):
+    await context.send('You said: ' + message)
 
 @bot.command()
 async def register(context: Context, osrsUsername: str):
