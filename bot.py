@@ -18,10 +18,16 @@ async def on_ready():
 async def register(context: Context, osrsUsername: str):
     guildId = context.guild.id
     discordUserId = context.author.id
+
     config.addParticipant(guildId, osrsUsername, discordUserId)
 
-    responseMessage = await sendMessage()
-
+    await context.message.delete(delay=30)
+    messageContent = context.author.mention + f'''
+    You have been registered as {osrsUsername}.\n
+    If this isn't right, you can run the command again and you will be re-registered under your new name.\n
+    This message will be automatically deleted in one minute.
+    '''
+    await sendMessage(context, messageContent, delete_after=30)
 
 async def adminRunCallback(context: Context):
     if not userCanDoAdmin(context):
@@ -95,14 +101,14 @@ async def getSOTWNumber(context: Context):
     logger.info(f'User {context.author.name} sucessfully read a config value: {config.SOTW_NUMBER} -> {sotwNumber}')
     await sendMessage(context, f'SOTW Number -> {sotwNumber if sotwNumber is not None else "Not set"}', isAdmin=True)
 
-async def sendMessage(context: Context, content: str, isAdmin: bool=False):
+async def sendMessage(context: Context, content: str, isAdmin: bool=False, delete_after=None):
     guild_id = context.guild.id
     configKey = config.BOT_ADMIN_CHANNEL if isAdmin else config.BOT_PUBLIC_CHANNEL
     channel = context.guild.get_channel(config.get(guild_id, configKey))
     if channel is None:
         channel = context.channel
     logger.info(f'Bot sent the following message to {context.channel.name}: {content}')
-    return await channel.send(content)
+    return await channel.send(content, delete_after=delete_after)
 
 def userCanDoAdmin(context: Context):
     allowedRoleId = config.get(context.guild.id, config.ADMIN_ROLE)

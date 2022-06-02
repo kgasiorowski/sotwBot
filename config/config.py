@@ -28,3 +28,13 @@ class Config:
             return None
         else:
             return self.configs[guildId][key]
+
+    def addParticipant(self, guildId: str, username: str, userDiscordId: int):
+        guildId = str(guildId)
+        self.configs.setdefault(guildId, {})
+        self.configs[guildId].setdefault('participants', {})
+        for participant in list(self.configs[guildId]['participants'].keys()):
+            if self.configs[guildId]['participants'][participant] == userDiscordId:
+                del self.configs[guildId]['participants'][participant]
+        self.configs[guildId]['participants'][username] = userDiscordId
+        self.save()
