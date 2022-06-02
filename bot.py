@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.context import Context
 import secret
-import config
+from config import config
 import logger
 
 bot = commands.Bot(command_prefix='!', description='Testing description', intents=discord.Intents.default())
