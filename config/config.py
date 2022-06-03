@@ -6,6 +6,7 @@ class Config:
     BOT_PUBLIC_CHANNEL = 'bot_public_channel'
     CLAN_NAME = 'clan_name'
     SOTW_NUMBER = 'SOTW_number'
+    GUILD_STATUS = 'status'
     PERMISSION_ERROR_MESSAGE = 'You lack the required role to interact with this bot.'
 
     def __init__(self):
