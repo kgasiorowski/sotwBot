@@ -17,10 +17,8 @@ class Config:
     SOTW_CONCLUDED = 'sotw_concluded'
 
     # Poll
-    POLL_REACTIONS = [':one:', ':two:', ':three:', ':four:', ':five:', ':six:', ':seven:', ':eight:', ':nine:']
-    POLL_CONTENT = """
-    This is some testing poll content.
-    """
+    POLL_REACTIONS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']
+    POLL_CONTENT = 'This is some testing poll content.\n'
 
     def __init__(self):
         with open('./config/config.json', 'r') as configFile:
@@ -53,3 +51,9 @@ class Config:
                 del self.configs[guildId]['participants'][participant]
         self.configs[guildId]['participants'][username] = userDiscordId
         self.save()
+
+    def getGuildPublicChannel(self, guild):
+        return guild.get_channel(self.get(guild.id, self.BOT_PUBLIC_CHANNEL))
+
+    def getGuildAdminChannel(self, guild):
+        return guild.get_channel(self.get(guild.id, self.BOT_ADMIN_CHANNEL))

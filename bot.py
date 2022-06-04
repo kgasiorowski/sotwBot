@@ -183,18 +183,19 @@ async def createSOTW(context: Context, dateString: str, duration: str, metric: s
         ... # Check if the metric has been set by the poll yet
 
 @admin.command(name="openpoll")
-async def openSOTWPoll(context: Context, skills: str):
+async def openSOTWPoll(context: Context, skillsString: str):
     """Open a SOTW poll in the public channel for users to vote on the next skill.
     Expects a comma-delimited string of possible skills to choose from.
     """
     pollContent = config.POLL_CONTENT
-    counter = 0
-    for skill in skills.split(','):
-        pollContent += '\n' + config.POLL_REACTIONS[counter] + ' - ' + skill
-        counter += 1
+    skills = skillsString.split(',')
+    for i in range(len(skills)):
+        pollContent += '\n' + config.POLL_REACTIONS[i] + ' - ' + skills[i] + '\n'
 
     poll = await sendMessage(context, pollContent)
-    ... # Figure out how to add reactions to a message
+
+    for i in range(len(skills)):
+        await poll.add_reaction(config.POLL_REACTIONS[i])
 
 @admin.command(name="closepoll")
 async def closeSOTWPoll(context: Context):
