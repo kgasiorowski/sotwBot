@@ -4,8 +4,6 @@ from discord.ext.commands.context import Context
 import secret
 from config import config
 from utils import logger
-import asyncio
-from datetime import datetime
 
 bot = commands.Bot(command_prefix='!', description='Skill of the Week Bot', intents=discord.Intents.default())
 config = config.Config()
@@ -15,25 +13,6 @@ logger = logger.initLogger()
 async def on_ready():
     print(f'Logged in')
     logger.info('Bot started')
-
-@bot.command()
-async def test(context: Context, message: str):
-    """Testing command
-    """
-    datetimeToRun = datetime.strptime('2022-06-02', '%Y-%m-%d')
-    datetimeToRun = datetimeToRun.replace(hour=0, minute=56, second=0)
-    await runFunctionAtTime(datetimeToRun, action, [context, message])
-
-async def runFunctionAtTime(commandDate: datetime, function: callable, args: list):
-    now = datetime.now()
-    then = commandDate
-    delay = (then-now).total_seconds()
-    print(f'Delay: {delay}')
-    await asyncio.sleep(delay)
-    await function(*args)
-
-async def action(context: Context, message):
-    await context.send('You said: ' + message)
 
 @bot.command()
 async def register(context: Context, osrsUsername: str):
@@ -72,10 +51,10 @@ async def canRunAdmin(context: Context):
 
     if not isAdminUser:
         if context.invoked_with != 'help':
-            await sendMessage(context, config.PERMISSION_ERROR_MESSAGE, isAdmin=False)
+            await context.send(config.PERMISSION_ERROR_MESSAGE)
             logger.info(f'User {context.author.name} tried to perform an admin action: {context.invoked_subcommand}')
-        return False
-    return True
+
+    return isAdminUser
 
 @bot.group(checks=[canRunAdmin], case_insensitive=True)
 async def admin(context: Context):

@@ -25,7 +25,8 @@ class Config:
 
     def get(self, guildId: str, key):
         guildId = str(guildId)
-        if guildId not in self.configs or key not in self.configs[guildId]:
+        self.configs.setdefault(guildId, {})
+        if key not in self.configs[guildId]:
             return None
         else:
             return self.configs[guildId][key]
