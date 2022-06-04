@@ -60,6 +60,15 @@ async def userCanRunAdmin(context: Context):
 
     return isAdminUser
 
+async def sendMessage(context: Context, content: str, isAdmin: bool=False, delete_after=None):
+    guild_id = context.guild.id
+    configKey = config.BOT_ADMIN_CHANNEL if isAdmin else config.BOT_PUBLIC_CHANNEL
+    channel = context.guild.get_channel(config.get(guild_id, configKey))
+    if channel is None:
+        channel = context.channel
+    logger.info(f'Bot sent the following message to {context.channel.name}: {content}')
+    return await channel.send(content, delete_after=delete_after)
+
 # SOTW commands
 @bot.command(name="status", checks=[commandIsInBotPublicChannel])
 async def checkSOTWStatus(context: Context):
@@ -151,15 +160,6 @@ async def getSOTWNumber(context: Context):
     sotwNumber = config.get(context.guild.id, config.SOTW_NUMBER)
     logger.info(f'User {context.author.name} sucessfully read a config value: {config.SOTW_NUMBER} -> {sotwNumber}')
     await sendMessage(context, f'SOTW Number -> {sotwNumber if sotwNumber is not None else "Not set"}', isAdmin=True)
-
-async def sendMessage(context: Context, content: str, isAdmin: bool=False, delete_after=None):
-    guild_id = context.guild.id
-    configKey = config.BOT_ADMIN_CHANNEL if isAdmin else config.BOT_PUBLIC_CHANNEL
-    channel = context.guild.get_channel(config.get(guild_id, configKey))
-    if channel is None:
-        channel = context.channel
-    logger.info(f'Bot sent the following message to {context.channel.name}: {content}')
-    return await channel.send(content, delete_after=delete_after)
 
 @admin.command(name="create")
 async def createSOTW(context: Context, dateString: str, duration: str, metric: str=None):
