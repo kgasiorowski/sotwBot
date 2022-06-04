@@ -6,8 +6,21 @@ class Config:
     BOT_PUBLIC_CHANNEL = 'bot_public_channel'
     CLAN_NAME = 'clan_name'
     SOTW_NUMBER = 'SOTW_number'
+    SOTW_TITLE = 'SOTW_title'
     GUILD_STATUS = 'status'
     PERMISSION_ERROR_MESSAGE = 'You lack the required role to interact with this bot.'
+
+    #Sotw status values
+    SOTW_NONE_PLANNED = 'sotw_none_planned'
+    SOTW_SCHEDULED = 'sotw_scheduled'
+    SOTW_IN_PROGRESS = 'sotw_in_progress'
+    SOTW_CONCLUDED = 'sotw_concluded'
+
+    # Poll
+    POLL_REACTIONS = [':one:', ':two:', ':three:', ':four:', ':five:', ':six:', ':seven:', ':eight:', ':nine:']
+    POLL_CONTENT = """
+    This is some testing poll content.
+    """
 
     def __init__(self):
         with open('./config/config.json', 'r') as configFile:
