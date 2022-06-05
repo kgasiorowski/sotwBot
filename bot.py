@@ -6,6 +6,7 @@ from config import config
 from utils import logger
 from datetime import datetime
 from datetime import timedelta
+import WiseOldManApi
 
 bot = commands.Bot(command_prefix='!', description='Skill of the Week Bot', intents=discord.Intents.default())
 config = config.Config()
@@ -167,6 +168,17 @@ async def createSOTW(context: Context, dateString: str, duration: str, metric: s
     This will schedule a SOTW which will start at midnight ON THAT DATE.
     So, for example, giving it the date 2022/1/1 will schedule a SOTW to start on 12:00am on January 1st, 2022.
     """
+
+    if metric is None:
+        metric = config.get(context.guild.id, config.POLL_WINNER)
+
+    if metric is None:
+        errorMessageContent = """
+        Couldn\'t start a sotw - there was no metric registered. A metric is automatically saved when a poll is closed,
+        or you can manually pass in a skill with this command, after the duration.
+        """
+        await sendMessage(context, errorMessageContent, isAdmin=True)
+
     sotwStartDate = datetime.strptime(dateString, '%Y/%m/%d')
     sotwStartDate = sotwStartDate.replace(hour=0, minute=0, second=0)
     number = int(duration[0])
@@ -178,9 +190,10 @@ async def createSOTW(context: Context, dateString: str, duration: str, metric: s
         duration = timedelta(weeks=number)
 
     sotwEndDate = sotwStartDate + duration
+    title = config.get(context.guild.id, config.SOTW_TITLE)
+    participants = config.get(context.guild.id, config.SOTW_PARTICIPANTS)
 
-    if metric is None:
-        ... # Check if the metric has been set by the poll yet
+    WiseOldManApi.createSOTW(title, metric, sotwStartDate, sotwEndDate, participants)
 
 @admin.command(name="openpoll")
 async def openSOTWPoll(context: Context, skillsString: str):
@@ -227,6 +240,7 @@ async def closeSOTWPoll(context: Context):
                 mostReactions = poll.reactions[i].count
 
         config.set(context.guild.id, config.POLL_WINNER, winner)
+        config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_POLL_CLOSED)
         await poll.edit(content='This poll has closed.')
         await sendMessage(context, f'Current poll closed. Winner: {winner}', isAdmin=True)
         await sendMessage(context, f'The SOTW poll has closed! The winner is: {winner}', isAdmin=False)
