@@ -12,6 +12,8 @@ class Config:
 
     #Sotw status values
     SOTW_NONE_PLANNED = 'sotw_none_planned'
+    SOTW_POLL_OPENED = 'sotw_poll_opened'
+    SOTW_POLL_CLOSED = 'sotw_poll_closed'
     SOTW_SCHEDULED = 'sotw_scheduled'
     SOTW_IN_PROGRESS = 'sotw_in_progress'
     SOTW_CONCLUDED = 'sotw_concluded'
@@ -19,6 +21,9 @@ class Config:
     # Poll
     POLL_REACTIONS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']
     POLL_CONTENT = 'This is some testing poll content.\n'
+    CURRENT_POLL = 'current_poll_id'
+    SKILLS_BEING_POLLED = 'skills_being_polled'
+    POLL_WINNER = 'poll_winner'
 
     def __init__(self):
         with open('./config/config.json', 'r') as configFile:

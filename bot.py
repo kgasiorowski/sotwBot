@@ -187,20 +187,49 @@ async def openSOTWPoll(context: Context, skillsString: str):
     """Open a SOTW poll in the public channel for users to vote on the next skill.
     Expects a comma-delimited string of possible skills to choose from.
     """
+    status = config.get(context.guild.id, config.GUILD_STATUS)
+    if status == config.SOTW_POLL_OPENED:
+        await sendMessage(context, 'There is already a poll currently running.', isAdmin=True)
+        return
+
     pollContent = config.POLL_CONTENT
     skills = skillsString.split(',')
     for i in range(len(skills)):
-        pollContent += '\n' + config.POLL_REACTIONS[i] + ' - ' + skills[i] + '\n'
+        pollContent += '\n' + config.POLL_REACTIONS[i] + ' - ' + skills[i].capitalize() + '\n'
 
     poll = await sendMessage(context, pollContent)
 
     for i in range(len(skills)):
         await poll.add_reaction(config.POLL_REACTIONS[i])
 
+    config.set(context.guild.id, config.SKILLS_BEING_POLLED, skills)
+    config.set(context.guild.id, config.CURRENT_POLL, poll.id)
+    config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_POLL_OPENED)
+
 @admin.command(name="closepoll")
 async def closeSOTWPoll(context: Context):
     """Closes the current SOTW poll, if it exists.
     """
+    status = config.get(context.guild.id, config.GUILD_STATUS)
+    if status != config.SOTW_POLL_OPENED:
+        await sendMessage(context, 'There\'s no poll currently running.', isAdmin=True)
+    else:
+        poll = await config.getGuildPublicChannel(context.guild).fetch_message(config.get(context.guild.id, config.CURRENT_POLL))
+        skillsBeingPolled = config.get(context.guild.id, config.SKILLS_BEING_POLLED)
+        config.set(context.guild.id, config.CURRENT_POLL, None)
+        config.set(context.guild.id, config.SKILLS_BEING_POLLED, [])
+
+        winner = None
+        mostReactions = 0
+        for i in range(len(poll.reactions)):
+            if poll.reactions[i].count > mostReactions:
+                winner = skillsBeingPolled[i]
+                mostReactions = poll.reactions[i].count
+
+        config.set(context.guild.id, config.POLL_WINNER, winner)
+        await poll.edit(content='This poll has closed.')
+        await sendMessage(context, f'Current poll closed. Winner: {winner}', isAdmin=True)
+        await sendMessage(context, f'The SOTW poll has closed! The winner is: {winner}', isAdmin=False)
 
 if __name__ == "__main__":
     bot.run(secret.TOKEN)
