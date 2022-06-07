@@ -164,21 +164,15 @@ async def setPublicChannel(context: Context, channel: discord.TextChannel):
     await sendMessage(context, 'Bot public channel successfully set', isAdmin=True)
     logger.info(f'User {context.author.name} successfully set the bot channel to {channel.name}')
 
-@admin.command()
-async def setSOTWTitle(context: Context, SOTWtitle: str):
+@admin.command(name="settitle")
+async def setSOTWTitle(context: Context, SOTWtitle: str=None):
     """Sets the next SOTW's title
     """
     config.set(context.guild.id, config.SOTW_TITLE, SOTWtitle)
-    logger.info(f'User {context.author.name} set the SOTW\'s title to: {SOTWtitle}')
-    await sendMessage(context, 'Successfully updated SOTW title', isAdmin=True)
-
-@admin.command()
-async def getSOTWNumber(context: Context):
-    """Retrieves the sotw number for the current discord, if set
-    """
-    sotwNumber = config.get(context.guild.id, config.SOTW_NUMBER)
-    logger.info(f'User {context.author.name} sucessfully read a config value: {config.SOTW_NUMBER} -> {sotwNumber}')
-    await sendMessage(context, f'SOTW Number -> {sotwNumber if sotwNumber is not None else "Not set"}', isAdmin=True)
+    if SOTWtitle is None:
+        await sendMessage(context, 'Successfully reset SOTW title', isAdmin=True)
+    else:
+        await sendMessage(context, 'Successfully updated SOTW title', isAdmin=True)
 
 @admin.command(name="create")
 async def createSOTW(context: Context, dateString: str, duration: str, metric: str=None):
@@ -209,6 +203,9 @@ async def createSOTW(context: Context, dateString: str, duration: str, metric: s
 
     sotwEndDate = sotwStartDate + duration
     title = config.get(context.guild.id, config.SOTW_TITLE)
+    if title is None:
+        await sendMessage(context, 'Couldn\'t create SOTW - no title was set.', isAdmin=True)
+        return
 
     groupId = config.get(context.guild.id, config.WOM_GROUP_ID)
     groupVerificationCode = config.get(context.guild.id, config.WOM_GROUP_VERIFICATION_CODE)
@@ -255,6 +252,11 @@ async def openSOTWPoll(context: Context, skillsString: str):
     config.set(context.guild.id, config.SKILLS_BEING_POLLED, skills)
     config.set(context.guild.id, config.CURRENT_POLL, poll.id)
     config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_POLL_OPENED)
+
+@bot.command()
+async def cleanup(context: Context):
+    verificationCode = config.get(context.guild.id, config.WOM_GROUP_VERIFICATION_CODE)
+    WiseOldManApi.deleteSotw(12165, verificationCode)
 
 @admin.command(name="closepoll")
 async def closeSOTWPoll(context: Context):
