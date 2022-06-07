@@ -280,10 +280,11 @@ async def deleteSotw(context: Context):
     groupVerificationCode = config.get(context.guild.id, config.WOM_GROUP_VERIFICATION_CODE)
     response = WiseOldManApi.deleteSotw(sotwData['id'], groupVerificationCode)
 
-    if response.status_code >= 300:
-        await sendMessage(context, 'SOTW deletion failed - see logs', isAdmin=True)
-    else:
+    if response:
         config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_NONE_PLANNED)
+        config.set(context.guild.id, config.SOTW_COMPETITION_DATA, None)
+    else:
+        await sendMessage(context, 'SOTW deletion failed - see logs', isAdmin=True)
 
 if __name__ == "__main__":
     bot.run(secret.TOKEN)

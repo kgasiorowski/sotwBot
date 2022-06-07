@@ -39,4 +39,7 @@ def deleteSotw(sotwId: int, verificationCode: str):
     requestUrl = url + endpoint
     params = {'verificationCode':verificationCode}
     response = requests.delete(requestUrl, data=params)
-    return response
+    if response.status_code >= 300:
+        return False
+    else:
+        return json.loads(response.content.decode())
