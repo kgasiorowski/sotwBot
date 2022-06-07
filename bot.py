@@ -84,11 +84,29 @@ async def checkSOTWStatus(context: Context):
     if status == config.SOTW_NONE_PLANNED:
         await sendMessage(context, 'There is no SOTW event planned yet.')
     elif status == config.SOTW_SCHEDULED:
-        await sendMessage(context, 'There is a SOTW event scheduled, but it has not yet started.')
+        content = getSOTWStatusContent(context)
+        await sendMessage(context, 'There is a SOTW planned, but not yet started.' + content)
     elif status == config.SOTW_IN_PROGRESS:
-        await sendMessage(context, 'There is a SOTW event currently in progress.')
+        content = getSOTWStatusContent(context)
+        await sendMessage(context, 'There is a SOTW event currently in progress.' + content)
     elif status == config.SOTW_CONCLUDED:
         await sendMessage(context, 'The last SOTW event has concluded.')
+
+def getSOTWStatusContent(context: Context):
+    rawDateFormat = '%Y-%m-%dT%H:%M:%S.%fZ'
+    desiredDateFormat = '%B %d, %I%p GMT (%A)'
+
+    rawStartDateString = config.get(context.guild.id, config.SOTW_COMPETITION_DATA)['startsAt']
+    rawEndDateString = config.get(context.guild.id, config.SOTW_COMPETITION_DATA)['endsAt']
+
+    startDate = datetime.strptime(rawStartDateString, rawDateFormat).strftime(desiredDateFormat)
+    endDate = datetime.strptime(rawEndDateString, rawDateFormat).strftime(desiredDateFormat)
+
+    return f"""
+    Skill: {config.get(context.guild.id, config.POLL_WINNER)}
+    Start date: {startDate}
+    End date: {endDate}
+    """
 
 @bot.command(check=[commandIsInBotPublicChannel])
 async def register(context: Context, osrsUsername: str):
@@ -197,6 +215,12 @@ async def createSOTW(context: Context, dateString: str, duration: str, metric: s
 
     if groupId is None or groupVerificationCode is None:
         participants = config.getParticipantList(context.guild.id)
+        if participants is None:
+            await sendMessage(context, 'Couldn\'t create SOTW - either no WOM group has been specified, or nobody has registered, as there is no participant list.', isAdmin=True)
+            return
+        elif len(participants) == 1:
+            await sendMessage(context, 'Couldn\'t create SOTW - needs more than one competitors.')
+            return
         response = WiseOldManApi.createSOTW(title, metric, sotwStartDate, sotwEndDate, participants=participants)
     else:
         response = WiseOldManApi.createSOTW(title, metric, sotwStartDate, sotwEndDate, groupId=groupId, groupVerificationCode=groupVerificationCode)
@@ -207,8 +231,6 @@ async def createSOTW(context: Context, dateString: str, duration: str, metric: s
         await sendMessage(context, 'SOTW successfully scheduled. Type !status in the public channel to see the current SOTW status.', isAdmin=True)
         config.set(context.guild.id, config.SOTW_COMPETITION_DATA, response)
         config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_SCHEDULED)
-        config.set(context.guild.id, config.SOTW_START_DATE, str(sotwStartDate))
-        config.set(context.guild.id, config.SOTW_END_DATE, str(sotwEndDate))
 
 @admin.command(name="openpoll")
 async def openSOTWPoll(context: Context, skillsString: str):
@@ -256,7 +278,6 @@ async def closeSOTWPoll(context: Context):
 
         config.set(context.guild.id, config.POLL_WINNER, winner)
         config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_POLL_CLOSED)
-        await poll.edit(content='This poll has closed.')
         await sendMessage(context, f'Current poll closed. Winner: {winner}', isAdmin=True)
         await sendMessage(context, f'The SOTW poll has closed! The winner is: {winner}', isAdmin=False)
 

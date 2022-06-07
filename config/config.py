@@ -68,6 +68,8 @@ class Config:
     def getParticipantList(self, guildId: str):
         guildId = str(guildId)
         participants = self.get(guildId, self.SOTW_PARTICIPANTS)
+        if participants is None:
+            return None
         return list(participants.keys())
 
     def getGuildPublicChannel(self, guild):
