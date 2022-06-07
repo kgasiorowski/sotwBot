@@ -9,6 +9,8 @@ class Config:
     SOTW_TITLE = 'SOTW_title'
     GUILD_STATUS = 'status'
     PERMISSION_ERROR_MESSAGE = 'You lack the required role to interact with this bot.'
+    SOTW_START_DATE = 'sotw_start_date'
+    SOTW_END_DATE = 'sotw_end_date'
 
     #Sotw status values
     SOTW_NONE_PLANNED = 'sotw_none_planned'
@@ -17,7 +19,12 @@ class Config:
     SOTW_SCHEDULED = 'sotw_scheduled'
     SOTW_IN_PROGRESS = 'sotw_in_progress'
     SOTW_CONCLUDED = 'sotw_concluded'
-    SOTW_PARTICIPANTS = 'sotw_participants'
+    SOTW_PARTICIPANTS = 'participants'
+    SOTW_COMPETITION_DATA = 'sotw_data'
+
+    # Groups
+    WOM_GROUP_ID = 'wom_group_id'
+    WOM_GROUP_VERIFICATION_CODE = 'wom_group_verification_code'
 
     # Poll
     POLL_REACTIONS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']
@@ -57,6 +64,11 @@ class Config:
                 del self.configs[guildId]['participants'][participant]
         self.configs[guildId]['participants'][username] = userDiscordId
         self.save()
+
+    def getParticipantList(self, guildId: str):
+        guildId = str(guildId)
+        participants = self.get(guildId, self.SOTW_PARTICIPANTS)
+        return list(participants.keys())
 
     def getGuildPublicChannel(self, guild):
         return guild.get_channel(self.get(guild.id, self.BOT_PUBLIC_CHANNEL))

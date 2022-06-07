@@ -17,7 +17,7 @@ async def on_ready():
     print(f'Logged in')
     logger.info('Bot started')
 
-async def commandIsInBotPublicChannel(context: Context):
+def commandIsInBotPublicChannel(context: Context):
     """
     Checks if the command was run in the public bot channel
     """
@@ -28,7 +28,7 @@ async def commandIsInBotPublicChannel(context: Context):
     publicChannel = context.guild.get_channel(publicChannelId)
     return context.channel == publicChannel
 
-async def commandIsInAdminChannel(context: Context):
+def commandIsInAdminChannel(context: Context):
     """
     Checks if the admin command was run in the admin channel.
     """
@@ -191,9 +191,24 @@ async def createSOTW(context: Context, dateString: str, duration: str, metric: s
 
     sotwEndDate = sotwStartDate + duration
     title = config.get(context.guild.id, config.SOTW_TITLE)
-    participants = config.get(context.guild.id, config.SOTW_PARTICIPANTS)
 
-    WiseOldManApi.createSOTW(title, metric, sotwStartDate, sotwEndDate, participants)
+    groupId = config.get(context.guild.id, config.WOM_GROUP_ID)
+    groupVerificationCode = config.get(context.guild.id, config.WOM_GROUP_VERIFICATION_CODE)
+
+    if groupId is None or groupVerificationCode is None:
+        participants = config.getParticipantList(context.guild.id)
+        response = WiseOldManApi.createSOTW(title, metric, sotwStartDate, sotwEndDate, participants=participants)
+    else:
+        response = WiseOldManApi.createSOTW(title, metric, sotwStartDate, sotwEndDate, groupId=groupId, groupVerificationCode=groupVerificationCode)
+
+    if not response:
+        await sendMessage(context, 'There was an error with the api. Please check the logs.', isAdmin=True)
+    else:
+        await sendMessage(context, 'SOTW successfully scheduled. Type !status in the public channel to see the current SOTW status.', isAdmin=True)
+        config.set(context.guild.id, config.SOTW_COMPETITION_DATA, response)
+        config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_SCHEDULED)
+        config.set(context.guild.id, config.SOTW_START_DATE, str(sotwStartDate))
+        config.set(context.guild.id, config.SOTW_END_DATE, str(sotwEndDate))
 
 @admin.command(name="openpoll")
 async def openSOTWPoll(context: Context, skillsString: str):
@@ -244,6 +259,31 @@ async def closeSOTWPoll(context: Context):
         await poll.edit(content='This poll has closed.')
         await sendMessage(context, f'Current poll closed. Winner: {winner}', isAdmin=True)
         await sendMessage(context, f'The SOTW poll has closed! The winner is: {winner}', isAdmin=False)
+
+@admin.command(name='setgroup')
+async def setSotwGroup(context: Context, groupId: int=None, verificationCode: str=None):
+    """Sets the custom WOM group for this discord. Optional, and if no parameters are provided, will reset the group.
+    """
+    config.set(context.guild.id, config.WOM_GROUP_ID, groupId)
+    config.set(context.guild.id, config.WOM_GROUP_VERIFICATION_CODE, verificationCode)
+    if groupId is None or verificationCode is None:
+        messageContent = 'The group has been reset.'
+    else:
+        messageContent = 'The group ID and verification code have been saved.'
+    await sendMessage(context, messageContent, isAdmin=True)
+
+@admin.command(name='deletesotw')
+async def deleteSotw(context: Context):
+    """Deletes the current SOTW
+    """
+    sotwData = config.get(context.guild.id, config.SOTW_COMPETITION_DATA)
+    groupVerificationCode = config.get(context.guild.id, config.WOM_GROUP_VERIFICATION_CODE)
+    response = WiseOldManApi.deleteSotw(sotwData['id'], groupVerificationCode)
+
+    if response.status_code >= 300:
+        await sendMessage(context, 'SOTW deletion failed - see logs', isAdmin=True)
+    else:
+        config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_NONE_PLANNED)
 
 if __name__ == "__main__":
     bot.run(secret.TOKEN)
