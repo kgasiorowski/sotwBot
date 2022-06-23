@@ -8,7 +8,9 @@ from datetime import datetime
 from datetime import timedelta
 import WiseOldManApi
 
-bot = commands.Bot(command_prefix='!', description='Skill of the Week Bot', intents=discord.Intents.default())
+intents = discord.Intents.default()
+intents.members = True
+bot = commands.Bot(command_prefix='!', description='Skill of the Week Bot', intents=intents)
 config = config.Config()
 logger = logger.initLogger()
 
