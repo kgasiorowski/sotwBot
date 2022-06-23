@@ -211,7 +211,7 @@ async def createSOTW(context: Context, dateString: str, duration: str, metric: s
             await sendMessage(context, 'Couldn\'t create SOTW - either no WOM group has been specified, or nobody has registered, as there is no participant list.', isAdmin=True)
             return
         elif len(participants) == 1:
-            await sendMessage(context, 'Couldn\'t create SOTW - needs more than one competitors.')
+            await sendMessage(context, 'Couldn\'t create SOTW - needs more than one competitors.', isAdmin=True)
             return
         response = WiseOldManApi.createSOTW(title, metric, sotwStartDate, sotwEndDate, participants=participants)
     else:
@@ -296,8 +296,24 @@ async def deleteSotw(context: Context):
     if response:
         config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_NONE_PLANNED)
         config.set(context.guild.id, config.SOTW_COMPETITION_DATA, None)
+        await sendMessage(context, 'SOTW deletion successful', isAdmin=True)
     else:
         await sendMessage(context, 'SOTW deletion failed - see logs', isAdmin=True)
+
+@bot.command(name='finishsotw', checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
+async def finishSotw(context: Context):
+    """Ends the currently running SOTW, if there is one.
+    """
+    # status = config.get(context.guild.id, config.GUILD_STATUS)
+    # if status != config.SOTW_IN_PROGRESS:
+    #     await sendMessage(context, 'Couldn\'t end the sotw - one is not currently running.', isAdmin=True)
+    #     return
+
+    sotwCompetitinId = config.get(context.guild.id, config.SOTW_COMPETITION_DATA)['id']
+    sotwData = WiseOldManApi.getSotw(sotwCompetitinId)
+
+    ...
+
 
 if __name__ == "__main__":
     bot.run(secret.TOKEN)

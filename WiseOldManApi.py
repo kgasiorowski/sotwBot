@@ -43,3 +43,12 @@ def deleteSotw(sotwId: int, verificationCode: str):
         return False
     else:
         return json.loads(response.content.decode())
+
+def getSotw(sotwId: int):
+    endpoint = f'/competitions/{sotwId}'
+    requestUrl = url + endpoint
+    response = requests.get(requestUrl)
+    if response.status_code >= 300:
+        return False
+    else:
+        return json.loads(response.content.decode())
