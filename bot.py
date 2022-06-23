@@ -128,14 +128,7 @@ async def register(context: Context, osrsUsername: str):
     '''
     await sendMessage(context, messageContent, delete_after=30)
 
-@bot.group(checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
-async def admin(context: Context):
-    """This denotes a command which requires the special admin role to run.
-    """
-    if context.invoked_subcommand is None:
-        await sendMessage(context, 'Admin needs a subcommand to do anything - type !help for more information', isAdmin=True)
-
-@admin.command()
+@bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
 async def setAdminRole(context: Context, role: discord.Role):
     """Sets the user role which can interact with the bot
     If no role is set, it will default to any role with "Admin" in the name.
@@ -144,7 +137,7 @@ async def setAdminRole(context: Context, role: discord.Role):
     await sendMessage(context, 'Mod role successfully set', isAdmin=True)
     logger.info(f'User {context.author.name} successfully set the bot role to {role.name}')
 
-@admin.command()
+@bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
 async def setAdminChannel(context: Context, channel: discord.TextChannel):
     """This sets the channel that this bot will use for admin purposes
     If not set, the bot will simply respond in the same channel.
@@ -154,7 +147,7 @@ async def setAdminChannel(context: Context, channel: discord.TextChannel):
     await sendMessage(context, 'Bot admin channel successfully set', isAdmin=True)
     logger.info(f'User {context.author.name} successfully set the bot channel to {channel.name}')
 
-@admin.command()
+@bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
 async def setPublicChannel(context: Context, channel: discord.TextChannel):
     """This sets the channel that this bot will use for admin purposes
     If not set, the bot will simply respond in the same channel.
@@ -164,7 +157,7 @@ async def setPublicChannel(context: Context, channel: discord.TextChannel):
     await sendMessage(context, 'Bot public channel successfully set', isAdmin=True)
     logger.info(f'User {context.author.name} successfully set the bot channel to {channel.name}')
 
-@admin.command(name="settitle")
+@bot.command(name="settitle", checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
 async def setSOTWTitle(context: Context, SOTWtitle: str=None):
     """Sets the next SOTW's title
     """
@@ -174,7 +167,7 @@ async def setSOTWTitle(context: Context, SOTWtitle: str=None):
     else:
         await sendMessage(context, 'Successfully updated SOTW title', isAdmin=True)
 
-@admin.command(name="create")
+@bot.command(name="create", checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
 async def createSOTW(context: Context, dateString: str, duration: str, metric: str=None):
     """Schedules a SOTW event. Expects a date in descending order (YEAR/MONTH/DAY)
     This will schedule a SOTW which will start at midnight ON THAT DATE.
@@ -229,7 +222,7 @@ async def createSOTW(context: Context, dateString: str, duration: str, metric: s
         config.set(context.guild.id, config.SOTW_COMPETITION_DATA, response)
         config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_SCHEDULED)
 
-@admin.command(name="openpoll")
+@bot.command(name="openpoll", checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
 async def openSOTWPoll(context: Context, skillsString: str):
     """Open a SOTW poll in the public channel for users to vote on the next skill.
     Expects a comma-delimited string of possible skills to choose from.
@@ -253,12 +246,7 @@ async def openSOTWPoll(context: Context, skillsString: str):
     config.set(context.guild.id, config.CURRENT_POLL, poll.id)
     config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_POLL_OPENED)
 
-@bot.command()
-async def cleanup(context: Context):
-    verificationCode = config.get(context.guild.id, config.WOM_GROUP_VERIFICATION_CODE)
-    WiseOldManApi.deleteSotw(12165, verificationCode)
-
-@admin.command(name="closepoll")
+@bot.command(name="closepoll", checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
 async def closeSOTWPoll(context: Context):
     """Closes the current SOTW poll, if it exists.
     """
@@ -283,7 +271,7 @@ async def closeSOTWPoll(context: Context):
         await sendMessage(context, f'Current poll closed. Winner: {winner}', isAdmin=True)
         await sendMessage(context, f'The SOTW poll has closed! The winner is: {winner}', isAdmin=False)
 
-@admin.command(name='setgroup')
+@bot.command(name='setgroup', checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
 async def setSotwGroup(context: Context, groupId: int=None, verificationCode: str=None):
     """Sets the custom WOM group for this discord. Optional, and if no parameters are provided, will reset the group.
     """
@@ -295,7 +283,7 @@ async def setSotwGroup(context: Context, groupId: int=None, verificationCode: st
         messageContent = 'The group ID and verification code have been saved.'
     await sendMessage(context, messageContent, isAdmin=True)
 
-@admin.command(name='deletesotw')
+@bot.command(name='deletesotw', checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
 async def deleteSotw(context: Context):
     """Deletes the current SOTW
     """
