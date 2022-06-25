@@ -72,6 +72,10 @@ async def sendMessage(context: Context, content: str, isAdmin: bool=False, delet
     logger.info(f'Bot sent the following message to {context.channel.name}: {content}')
     return await channel.send(content, delete_after=delete_after)
 
+def getSotwRanks(sotwData: dict):
+    sortedParticipants = sorted(sotwData['participants'], key=lambda a: a['progress']['gained'], reverse=True)
+    return [(a['username'], a['progress']['gained']) for a in sortedParticipants]
+
 # SOTW commands
 @bot.command(name="status", checks=[commandIsInBotPublicChannel])
 async def checkSOTWStatus(context: Context):
@@ -89,8 +93,18 @@ async def checkSOTWStatus(context: Context):
         content = getSOTWStatusContent(context)
         await sendMessage(context, 'There is a SOTW planned, but not yet started.' + content)
     elif status == config.SOTW_IN_PROGRESS:
-        content = getSOTWStatusContent(context)
-        await sendMessage(context, 'There is a SOTW event currently in progress.' + content)
+        sotwId = config.get(context.guild.id, config.SOTW_COMPETITION_DATA)['id']
+        sotwData = WiseOldManApi.getSotw(sotwId)
+        config.set(context.guild.id, config.SOTW_COMPETITION_DATA, sotwData)
+        hiscores = getSotwRanks(sotwData)[:3]
+        content = 'There is a SOTW event currently in progress.' + getSOTWStatusContent(context)
+        content += '\n Current leaders:\n-----------------------'
+        for username, exp in hiscores:
+            content += f'\n {username} - {exp:,} xp'
+
+        content += f'\n\nFor the full competition data, click this link: https://wiseoldman.net/competitions/{sotwId}/'
+        await sendMessage(context, content)
+
     elif status == config.SOTW_CONCLUDED:
         await sendMessage(context, 'The last SOTW event has concluded.')
 
@@ -304,10 +318,10 @@ async def deleteSotw(context: Context):
 async def finishSotw(context: Context):
     """Ends the currently running SOTW, if there is one.
     """
-    # status = config.get(context.guild.id, config.GUILD_STATUS)
-    # if status != config.SOTW_IN_PROGRESS:
-    #     await sendMessage(context, 'Couldn\'t end the sotw - one is not currently running.', isAdmin=True)
-    #     return
+    status = config.get(context.guild.id, config.GUILD_STATUS)
+    if status not in [config.SOTW_IN_PROGRESS, config.SOTW_SCHEDULED]:
+        await sendMessage(context, 'Couldn\'t end the sotw - one is not currently running.', isAdmin=True)
+        return
 
     sotwCompetitinId = config.get(context.guild.id, config.SOTW_COMPETITION_DATA)['id']
     sotwData = WiseOldManApi.getSotw(sotwCompetitinId)
