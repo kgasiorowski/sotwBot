@@ -9,8 +9,6 @@ class Config:
     SOTW_TITLE = 'SOTW_title'
     GUILD_STATUS = 'status'
     PERMISSION_ERROR_MESSAGE = 'You lack the required role to interact with this bot.'
-    SOTW_START_DATE = 'sotw_start_date'
-    SOTW_END_DATE = 'sotw_end_date'
 
     #Sotw status values
     SOTW_NONE_PLANNED = 'sotw_none_planned'
@@ -20,7 +18,10 @@ class Config:
     SOTW_IN_PROGRESS = 'sotw_in_progress'
     SOTW_CONCLUDED = 'sotw_concluded'
     SOTW_PARTICIPANTS = 'participants'
-    SOTW_COMPETITION_DATA = 'sotw_data'
+    SOTW_COMPETITION_ID = 'sotw_id'
+    SOTW_START_DATE = 'sotw_start_date'
+    SOTW_END_DATE = 'sotw_end_date'
+    SOTW_VERIFICATION_CODE = 'sotw_verification_code'
 
     # Groups
     WOM_GROUP_ID = 'wom_group_id'
