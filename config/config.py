@@ -66,6 +66,21 @@ class Config:
         self.configs[guildId]['participants'][username] = userDiscordId
         self.save()
 
+    def getParticipant(self, guildId: str, username: str):
+        guildId = str(guildId)
+
+        if guildId not in self.configs:
+            return None
+
+        if 'participants' not in self.configs[guildId]:
+            return None
+
+        if username not in self.configs[guildId]['participants']:
+            return None
+
+        return self.configs[guildId]['participants'][username];
+
+
     def getParticipantList(self, guildId: str):
         guildId = str(guildId)
         participants = self.get(guildId, self.SOTW_PARTICIPANTS)

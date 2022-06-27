@@ -200,6 +200,7 @@ async def createSOTW(context: Context, dateString: str, duration: str, metric: s
         or you can manually pass in a skill with this command, after the duration.
         """
         await sendMessage(context, errorMessageContent, isAdmin=True)
+        return
 
     sotwStartDate = datetime.strptime(dateString, '%Y/%m/%d')
     sotwStartDate = sotwStartDate.replace(hour=0, minute=0, second=0)
@@ -323,7 +324,7 @@ async def deleteSotw(context: Context):
         config.set(context.guild.id, config.SOTW_COMPETITION_ID, None)
         config.set(context.guild.id, config.SOTW_VERIFICATION_CODE, None)
         config.set(context.guild.id, config.SOTW_START_DATE, None)
-        config.set(context.guild.id, config.SOTW_END_DATE)
+        config.set(context.guild.id, config.SOTW_END_DATE, None)
         await sendMessage(context, 'SOTW deletion successful', isAdmin=True)
     else:
         await sendMessage(context, 'SOTW deletion failed - see logs', isAdmin=True)
@@ -337,11 +338,28 @@ async def finishSotw(context: Context):
         await sendMessage(context, 'Couldn\'t end the sotw - one is not currently running.', isAdmin=True)
         return
 
-    sotwCompetitinId = config.get(context.guild.id, config.SOTW_COMPETITION_ID)
-    sotwData = WiseOldManApi.getSotw(sotwCompetitinId)
+    sotwCompetitionId = config.get(context.guild.id, config.SOTW_COMPETITION_ID)
+    sotwData = WiseOldManApi.getSotw(sotwCompetitionId)
+    hiscores = getSotwRanks(sotwData)
+    content = f'{config.get(context.guild.id, config.SOTW_TITLE)} has ended!\nThe winners are:'
+    i = 1
+    for username, exp in hiscores[:3]:
+        discordUserId = config.getParticipant(context.guild.id, username)
+        content += f'\n{i}. {username} '
+        if discordUserId is not None:
+            user = context.guild.get_member(discordUserId)
+            content += f'({user.mention}) '
+        content += f'- {exp:,} xp'
+        i += 1
+    content += '\nPlease contact any officer for your rewards.'
+    await sendMessage(context, content, isAdmin=False)
 
+    config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_CONCLUDED)
 
-
+    config.set(context.guild.id, config.SOTW_COMPETITION_ID, None)
+    config.set(context.guild.id, config.SOTW_VERIFICATION_CODE, None)
+    config.set(context.guild.id, config.SOTW_START_DATE, None)
+    config.set(context.guild.id, config.SOTW_END_DATE, None)
 
 if __name__ == "__main__":
     bot.run(secret.TOKEN)
