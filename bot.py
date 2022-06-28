@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands.context import Context
+from discord import Guild
+from discord import TextChannel
 import secret
 from config import config
 from utils import logger
@@ -63,13 +65,13 @@ async def userCanRunAdmin(context: Context):
 
     return isAdminUser
 
-async def sendMessage(context: Context, content: str, isAdmin: bool=False, delete_after=None):
-    guild_id = context.guild.id
+async def sendMessage(guild: Guild, defaultChannel: TextChannel, content: str, isAdmin: bool=False, delete_after=None):
+    guild_id = guild.id
     configKey = config.BOT_ADMIN_CHANNEL if isAdmin else config.BOT_PUBLIC_CHANNEL
-    channel = context.guild.get_channel(config.get(guild_id, configKey))
+    channel = guild.get_channel(config.get(guild_id, configKey))
     if channel is None:
-        channel = context.channel
-    logger.info(f'Bot sent the following message to {context.channel.name}: {content}')
+        channel = defaultChannel
+    logger.info(f'Bot sent the following message to {channel.name}: {content}')
     return await channel.send(content, delete_after=delete_after)
 
 def getSotwRanks(sotwData: dict):
@@ -88,26 +90,26 @@ async def checkSOTWStatus(context: Context):
         status = config.SOTW_NONE_PLANNED
 
     if status == config.SOTW_NONE_PLANNED:
-        await sendMessage(context, 'There is no SOTW event planned yet.')
+        await sendMessage(context.guild, context.channel, 'There is no SOTW event planned yet.')
     elif status == config.SOTW_SCHEDULED:
         sotwId = config.get(context.guild.id, config.SOTW_COMPETITION_ID)
         sotwData = WiseOldManApi.getSotw(sotwId)
         content = getSOTWStatusContent(context, sotwData)
-        await sendMessage(context, 'There is a SOTW planned, but not yet started.' + content)
+        await sendMessage(context.guild, context.channel, 'There is a SOTW planned, but not yet started.' + content)
     elif status == config.SOTW_IN_PROGRESS:
         sotwId = config.get(context.guild.id, config.SOTW_COMPETITION_ID)
         sotwData = WiseOldManApi.getSotw(sotwId)
         hiscores = getSotwRanks(sotwData)[:3]
-        content = 'There is a SOTW event currently in progress.' + getSOTWStatusContent(context)
+        content = 'There is a SOTW event currently in progress.' + getSOTWStatusContent(context, sotwData)
         content += '\n Current leaders:\n-----------------------'
         for username, exp in hiscores:
             content += f'\n {username} - {exp:,} xp'
 
         content += f'\n\nFor the full competition data, click this link: https://wiseoldman.net/competitions/{sotwId}/'
-        await sendMessage(context, content)
+        await sendMessage(context.guild, context.channel, content)
 
     elif status == config.SOTW_CONCLUDED:
-        await sendMessage(context, 'The last SOTW event has concluded.')
+        await sendMessage(context.guild, context.channel, 'The last SOTW event has concluded.')
 
 def getSOTWStatusContent(context: Context, sotwData):
     rawDateFormat = '%Y-%m-%dT%H:%M:%S.%fZ'
@@ -137,13 +139,13 @@ async def register(context: Context, osrsUsername: str):
 
     config.addParticipant(guildId, osrsUsername, discordUserId)
 
-    await context.message.delete(delay=30)
     messageContent = context.author.mention + f'''
     You have been registered as {osrsUsername}.\n
     If this isn't right, you can run the command again and you will be re-registered under your new name.\n
-    This message will be automatically deleted in one minute.
+    This message will be automatically deleted in thirty seconds.
     '''
-    await sendMessage(context, messageContent, delete_after=30)
+    await sendMessage(context.guild, context.channel, messageContent, delete_after=30)
+    await context.message.delete(delay=30)
 
 @bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
 async def setAdminRole(context: Context, role: discord.Role):
@@ -151,7 +153,7 @@ async def setAdminRole(context: Context, role: discord.Role):
     If no role is set, it will default to any role with "Admin" in the name.
     """
     config.set(context.guild.id, config.ADMIN_ROLE, role.id)
-    await sendMessage(context, 'Mod role successfully set', isAdmin=True)
+    await sendMessage(context.guild, context.channel, 'Mod role successfully set', isAdmin=True)
     logger.info(f'User {context.author.name} successfully set the bot role to {role.name}')
 
 @bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
@@ -161,7 +163,7 @@ async def setAdminChannel(context: Context, channel: discord.TextChannel):
     The bot will still listen to all channels for commands.
     """
     config.set(context.guild.id, config.BOT_ADMIN_CHANNEL, channel.id)
-    await sendMessage(context, 'Bot admin channel successfully set', isAdmin=True)
+    await sendMessage(context.guild, context.channel, 'Bot admin channel successfully set', isAdmin=True)
     logger.info(f'User {context.author.name} successfully set the bot channel to {channel.name}')
 
 @bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
@@ -171,7 +173,7 @@ async def setPublicChannel(context: Context, channel: discord.TextChannel):
     The bot will still listen to all channels for commands.
     """
     config.set(context.guild.id, config.BOT_PUBLIC_CHANNEL, channel.id)
-    await sendMessage(context, 'Bot public channel successfully set', isAdmin=True)
+    await sendMessage(context.guild, context.channel, 'Bot public channel successfully set', isAdmin=True)
     logger.info(f'User {context.author.name} successfully set the bot channel to {channel.name}')
 
 @bot.command(name="settitle", checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
@@ -180,9 +182,9 @@ async def setSOTWTitle(context: Context, SOTWtitle: str=None):
     """
     config.set(context.guild.id, config.SOTW_TITLE, SOTWtitle)
     if SOTWtitle is None:
-        await sendMessage(context, 'Successfully reset SOTW title', isAdmin=True)
+        await sendMessage(context.guild, context.channel, 'Successfully reset SOTW title', isAdmin=True)
     else:
-        await sendMessage(context, 'Successfully updated SOTW title', isAdmin=True)
+        await sendMessage(context.guild, context.channel, 'Successfully updated SOTW title', isAdmin=True)
 
 @bot.command(name="create", checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
 async def createSOTW(context: Context, dateString: str, duration: str, metric: str=None):
@@ -199,7 +201,7 @@ async def createSOTW(context: Context, dateString: str, duration: str, metric: s
         Couldn\'t start a sotw - there was no metric registered. A metric is automatically saved when a poll is closed,
         or you can manually pass in a skill with this command, after the duration.
         """
-        await sendMessage(context, errorMessageContent, isAdmin=True)
+        await sendMessage(context.guild, context.channel, errorMessageContent, isAdmin=True)
         return
 
     sotwStartDate = datetime.strptime(dateString, '%Y/%m/%d')
@@ -215,7 +217,7 @@ async def createSOTW(context: Context, dateString: str, duration: str, metric: s
     sotwEndDate = sotwStartDate + duration
     title = config.get(context.guild.id, config.SOTW_TITLE)
     if title is None:
-        await sendMessage(context, 'Couldn\'t create SOTW - no title was set.', isAdmin=True)
+        await sendMessage(context.guild, context.channel, 'Couldn\'t create SOTW - no title was set.', isAdmin=True)
         return
 
     groupId = config.get(context.guild.id, config.WOM_GROUP_ID)
@@ -224,19 +226,19 @@ async def createSOTW(context: Context, dateString: str, duration: str, metric: s
     if groupId is None or groupVerificationCode is None:
         participants = config.getParticipantList(context.guild.id)
         if participants is None:
-            await sendMessage(context, 'Couldn\'t create SOTW - either no WOM group has been specified, or nobody has registered, as there is no participant list.', isAdmin=True)
+            await sendMessage(context.guild, context.channel, 'Couldn\'t create SOTW - either no WOM group has been specified, or nobody has registered, as there is no participant list.', isAdmin=True)
             return
         elif len(participants) == 1:
-            await sendMessage(context, 'Couldn\'t create SOTW - needs more than one competitors.', isAdmin=True)
+            await sendMessage(context.guild, context.channel, 'Couldn\'t create SOTW - needs more than one competitors.', isAdmin=True)
             return
         response = WiseOldManApi.createSOTW(title, metric, sotwStartDate, sotwEndDate, participants=participants)
     else:
         response = WiseOldManApi.createSOTW(title, metric, sotwStartDate, sotwEndDate, groupId=groupId, groupVerificationCode=groupVerificationCode)
 
     if not response:
-        await sendMessage(context, 'There was an error with the api. Please check the logs.', isAdmin=True)
+        await sendMessage(context.guild, context.channel, 'There was an error with the api. Please check the logs.', isAdmin=True)
     else:
-        await sendMessage(context, 'SOTW successfully scheduled. Type !status in the public channel to see the current SOTW status.', isAdmin=True)
+        await sendMessage(context.guild, context.channel, 'SOTW successfully scheduled. Type !status in the public channel to see the current SOTW status.', isAdmin=True)
         config.set(context.guild.id, config.SOTW_COMPETITION_ID, response['id'])
         config.set(context.guild.id, config.SOTW_START_DATE, response['startsAt'])
         config.set(context.guild.id, config.SOTW_END_DATE, response['endsAt'])
@@ -254,18 +256,18 @@ async def openSOTWPoll(context: Context, skillsString: str):
     """
     status = config.get(context.guild.id, config.GUILD_STATUS)
     if status == config.SOTW_POLL_OPENED:
-        await sendMessage(context, 'There is already a poll currently running.', isAdmin=True)
+        await sendMessage(context.guild, context.channel, 'There is already a poll currently running.', isAdmin=True)
         return
 
     pollContent = config.POLL_CONTENT
     skills = skillsString.split(',')
     for i in range(len(skills)):
-        pollContent += '\n' + config.POLL_REACTIONS[i] + ' - ' + skills[i].capitalize() + '\n'
+        pollContent += f'\n{config.POLL_REACTIONS_NUMERICAL[i]} - {skills[i].capitalize()}\n'
 
-    poll = await sendMessage(context, pollContent)
+    poll = await sendMessage(context.guild, context.channel, pollContent)
 
     for i in range(len(skills)):
-        await poll.add_reaction(config.POLL_REACTIONS[i])
+        await poll.add_reaction(config.POLL_REACTIONS_NUMERICAL[i])
 
     config.set(context.guild.id, config.SKILLS_BEING_POLLED, skills)
     config.set(context.guild.id, config.CURRENT_POLL, poll.id)
@@ -277,7 +279,7 @@ async def closeSOTWPoll(context: Context):
     """
     status = config.get(context.guild.id, config.GUILD_STATUS)
     if status != config.SOTW_POLL_OPENED:
-        await sendMessage(context, 'There\'s no poll currently running.', isAdmin=True)
+        await sendMessage(context.guild, context.channel, 'There\'s no poll currently running.', isAdmin=True)
     else:
         poll = await config.getGuildPublicChannel(context.guild).fetch_message(config.get(context.guild.id, config.CURRENT_POLL))
         skillsBeingPolled = config.get(context.guild.id, config.SKILLS_BEING_POLLED)
@@ -293,8 +295,8 @@ async def closeSOTWPoll(context: Context):
 
         config.set(context.guild.id, config.POLL_WINNER, winner)
         config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_POLL_CLOSED)
-        await sendMessage(context, f'Current poll closed. Winner: {winner}', isAdmin=True)
-        await sendMessage(context, f'The SOTW poll has closed! The winner is: {winner}', isAdmin=False)
+        await sendMessage(context.guild, context.channel, f'Current poll closed. Winner: {winner}', isAdmin=True)
+        await sendMessage(context.guild, context.channel, f'The SOTW poll has closed! The winner is: {winner}', isAdmin=False)
 
 @bot.command(name='setgroup', checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
 async def setSotwGroup(context: Context, groupId: int=None, groupVerificationCode: str=None):
@@ -306,7 +308,7 @@ async def setSotwGroup(context: Context, groupId: int=None, groupVerificationCod
         messageContent = 'The group has been reset.'
     else:
         messageContent = 'The group ID and verification code have been saved.'
-    await sendMessage(context, messageContent, isAdmin=True)
+    await sendMessage(context.guild, context.channel, messageContent, isAdmin=True)
 
 @bot.command(name='deletesotw', checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
 async def deleteSotw(context: Context):
