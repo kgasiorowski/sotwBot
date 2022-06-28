@@ -25,19 +25,26 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    prefix = config.get(message.guild.id, config.COMMAND_PREFIX)
-    prefix = prefix if prefix is not None else ''
+    if message.guild is not None:
 
-    if not message.content.startswith(prefix):
+        prefix = config.get(message.guild.id, config.COMMAND_PREFIX)
+        prefix = prefix if prefix is not None else ''
+
+        if not message.content.startswith(prefix):
+            return
+
+        message.content = message.content.removeprefix(prefix)
+
+        await bot.process_commands(message)
         return
 
-    message.content = message.content.removeprefix(prefix)
-    await bot.process_commands(message)
-
-    guildId = config.getGuildByDmId(message.channel.id)
-    if guildId is not None:
-        if message.content.lower().startswith('done'):
-            guild = discord.utils.find(lambda a:a.id == int(guildId), bot.guilds)
+    # Handle commands given in direct messages to the bot
+    if message.guild is None:
+        guildId = config.getGuildByDmId(message.channel.id)
+        if guildId is not None:
+            context = await bot.get_context(message)
+            if message.content.lower().startswith('done'):
+                guild = discord.utils.find(lambda a:a.id == int(guildId), bot.guilds)
 
 
 def commandIsInBotPublicChannel(context: Context):
