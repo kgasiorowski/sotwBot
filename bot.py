@@ -1,4 +1,5 @@
 import discord
+import discord.utils
 from discord.ext import commands
 from discord.ext.commands.context import Context
 from discord import Guild
@@ -20,6 +21,19 @@ logger = logger.initLogger()
 async def on_ready():
     print(f'Logged in')
     logger.info('Bot started')
+
+@bot.event
+async def on_message(message):
+    if message.author == bot.user:
+        return
+
+    await bot.process_commands(message)
+
+    guildId = config.getGuildByDmId(message.channel.id)
+    if guildId is not None:
+        if message.content.lower().startswith('done'):
+            guild = discord.utils.find(lambda a:a.id == int(guildId), bot.guilds)
+
 
 def commandIsInBotPublicChannel(context: Context):
     """
@@ -249,6 +263,9 @@ async def createSOTW(context: Context, dateString: str, duration: str, metric: s
         config.set(context.guild.id, config.SOTW_VERIFICATION_CODE, verificationCode)
         config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_SCHEDULED)
 
+async def createPoll():
+    ...
+
 @bot.command(name="openpoll", checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
 async def openSOTWPoll(context: Context, skillsString: str):
     """Open a SOTW poll in the public channel for users to vote on the next skill.
@@ -327,23 +344,25 @@ async def deleteSotw(context: Context):
         config.set(context.guild.id, config.SOTW_VERIFICATION_CODE, None)
         config.set(context.guild.id, config.SOTW_START_DATE, None)
         config.set(context.guild.id, config.SOTW_END_DATE, None)
-        await sendMessage(context, 'SOTW deletion successful', isAdmin=True)
+        await sendMessage(context.guild, context.channel, 'SOTW deletion successful', isAdmin=True)
     else:
-        await sendMessage(context, 'SOTW deletion failed - see logs', isAdmin=True)
+        await sendMessage(context.guild, context.channel, 'SOTW deletion failed - see logs', isAdmin=True)
 
 @bot.command(name='finishsotw', checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
 async def finishSotw(context: Context):
     """Ends the currently running SOTW, if there is one.
     """
-    status = config.get(context.guild.id, config.GUILD_STATUS)
-    if status not in [config.SOTW_IN_PROGRESS, config.SOTW_SCHEDULED]:
-        await sendMessage(context, 'Couldn\'t end the sotw - one is not currently running.', isAdmin=True)
-        return
+    # status = config.get(context.guild.id, config.GUILD_STATUS)
+    # if status not in [config.SOTW_IN_PROGRESS, config.SOTW_SCHEDULED]:
+    #     await sendMessage(context, 'Couldn\'t end the sotw - one is not currently running.', isAdmin=True)
+    #     return
 
     sotwCompetitionId = config.get(context.guild.id, config.SOTW_COMPETITION_ID)
-    sotwData = WiseOldManApi.getSotw(sotwCompetitionId)
+    sotwData = WiseOldManApi.getSotw(12065)
+    metric = sotwData['metric']
     hiscores = getSotwRanks(sotwData)
-    content = f'{config.get(context.guild.id, config.SOTW_TITLE)} has ended!\nThe winners are:'
+    sotwTitle = config.get(context.guild.id, config.SOTW_TITLE)
+    content = f'{sotwTitle} has ended!\nThe winners are:'
     i = 1
     for username, exp in hiscores[:3]:
         discordUserId = config.getParticipant(context.guild.id, username)
@@ -354,14 +373,34 @@ async def finishSotw(context: Context):
         content += f'- {exp:,} xp'
         i += 1
     content += '\nPlease contact any officer for your rewards.'
-    await sendMessage(context, content, isAdmin=False)
+    await sendMessage(context.guild, context.channel, content, isAdmin=False)
 
-    config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_CONCLUDED)
+    # config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_CONCLUDED)
+    #
+    # config.set(context.guild.id, config.SOTW_COMPETITION_ID, None)
+    # config.set(context.guild.id, config.SOTW_VERIFICATION_CODE, None)
+    # config.set(context.guild.id, config.SOTW_START_DATE, None)
+    # config.set(context.guild.id, config.SOTW_END_DATE, None)
 
-    config.set(context.guild.id, config.SOTW_COMPETITION_ID, None)
-    config.set(context.guild.id, config.SOTW_VERIFICATION_CODE, None)
-    config.set(context.guild.id, config.SOTW_START_DATE, None)
-    config.set(context.guild.id, config.SOTW_END_DATE, None)
+    winner = hiscores[0][0]
+    winnerId = config.getParticipant(context.guild.id, winner)
+    if winnerId is not None:
+        winner = context.guild.get_member(winnerId)
+        winnerDmChannel = winner.dm_channel if winner.dm_channel is not None else await winner.create_dm()
+        config.set(context.guild.id, config.SOTW_WINNER_DM_ID, winnerDmChannel.id)
+        content = f"""
+        Congratulations on winning {sotwTitle}!\n
+        Please choose three skill from the following list, and when you\'re done, reply in this channel with "done"
+        """
+        for i in range(len(config.SOTW_SKILLS)):
+            if config.SOTW_SKILLS[i] == metric:
+                continue
+            content += f'\n{config.POLL_REACTIONS_ALPHABETICAL[i]} - {config.SOTW_SKILLS[i].capitalize()}'
+
+        message = await winnerDmChannel.send(content)
+
+        for i in range(len(config.SOTW_SKILLS)):
+            await message.add_reaction(config.POLL_REACTIONS_ALPHABETICAL[i])
 
 if __name__ == "__main__":
     bot.run(secret.TOKEN)

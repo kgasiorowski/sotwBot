@@ -9,6 +9,24 @@ class Config:
     SOTW_TITLE = 'SOTW_title'
     GUILD_STATUS = 'status'
     PERMISSION_ERROR_MESSAGE = 'You lack the required role to interact with this bot.'
+    SOTW_SKILLS = ['agility',
+                   'construction',
+                   'cooking',
+                   'crafting',
+                   'farming',
+                   'firemaking',
+                   'fishing',
+                   'fletching',
+                   'herblore',
+                   'hunting',
+                   'mining',
+                   'prayer',
+                   'ranged',
+                   'runecrafting',
+                   'slayer',
+                   'smithing',
+                   'thieving',
+                   'woodcutting']
 
     #Sotw status values
     SOTW_NONE_PLANNED = 'sotw_none_planned'
@@ -22,13 +40,15 @@ class Config:
     SOTW_START_DATE = 'sotw_start_date'
     SOTW_END_DATE = 'sotw_end_date'
     SOTW_VERIFICATION_CODE = 'sotw_verification_code'
+    SOTW_WINNER_DM_ID = 'sotw_winner_dm_id'
 
     # Groups
     WOM_GROUP_ID = 'wom_group_id'
     WOM_GROUP_VERIFICATION_CODE = 'wom_group_verification_code'
 
     # Poll
-    POLL_REACTIONS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']
+    POLL_REACTIONS_NUMERICAL = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']
+    POLL_REACTIONS_ALPHABETICAL = [chr(i) for i in range(127462, 127462+26)]
     POLL_CONTENT = 'This is some testing poll content.\n'
     CURRENT_POLL = 'current_poll_id'
     SKILLS_BEING_POLLED = 'skills_being_polled'
@@ -93,3 +113,11 @@ class Config:
 
     def getGuildAdminChannel(self, guild):
         return guild.get_channel(self.get(guild.id, self.BOT_ADMIN_CHANNEL))
+
+    def getGuildByDmId(self, userDmId: str):
+        for key in self.configs.keys():
+            data = self.configs[key]
+            if self.SOTW_WINNER_DM_ID not in data:
+                continue
+            if data[self.SOTW_WINNER_DM_ID] == userDmId:
+                return key
