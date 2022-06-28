@@ -1,6 +1,7 @@
 import json
 
 class Config:
+    COMMAND_PREFIX = 'command_prefix'
     ADMIN_ROLE = 'admin_role'
     BOT_ADMIN_CHANNEL = 'bot_admin_channel'
     BOT_PUBLIC_CHANNEL = 'bot_public_channel'

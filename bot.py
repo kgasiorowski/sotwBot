@@ -13,7 +13,7 @@ import WiseOldManApi
 
 intents = discord.Intents.default()
 intents.members = True
-bot = commands.Bot(command_prefix='!', description='Skill of the Week Bot', intents=intents)
+bot = commands.Bot(command_prefix='', description='Skill of the Week Bot', intents=intents)
 config = config.Config()
 logger = logger.initLogger()
 
@@ -27,6 +27,13 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
+    prefix = config.get(message.guild.id, config.COMMAND_PREFIX)
+    prefix = prefix if prefix is not None else ''
+
+    if not message.content.startswith(prefix):
+        return
+
+    message.content = message.content.removeprefix(prefix)
     await bot.process_commands(message)
 
     guildId = config.getGuildByDmId(message.channel.id)
@@ -91,6 +98,11 @@ async def sendMessage(guild: Guild, defaultChannel: TextChannel, content: str, i
 def getSotwRanks(sotwData: dict):
     sortedParticipants = sorted(sotwData['participants'], key=lambda a: a['progress']['gained'], reverse=True)
     return [(a['username'], a['progress']['gained']) for a in sortedParticipants]
+
+@bot.command(name="setprefix", checks=[userCanRunAdmin, commandIsInAdminChannel])
+async def setprefix(context: Context, prefix: str):
+    config.set(context.guild.id, config.COMMAND_PREFIX, prefix)
+    await sendMessage(context.guild, context.channel, f'Prefix successfully updated to {prefix}', isAdmin=True)
 
 # SOTW commands
 @bot.command(name="status", checks=[commandIsInBotPublicChannel])
