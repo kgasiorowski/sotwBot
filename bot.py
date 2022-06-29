@@ -372,13 +372,13 @@ async def deletesotw(context: Context):
 async def closesotw(context: Context):
     """Ends the currently running SOTW, if there is one.
     """
-    # status = config.get(context.guild.id, config.GUILD_STATUS)
-    # if status not in [config.SOTW_IN_PROGRESS, config.SOTW_SCHEDULED]:
-    #     await sendMessage(context, 'Couldn\'t end the sotw - one is not currently running.', isAdmin=True)
-    #     return
+    status = config.get(context.guild.id, config.GUILD_STATUS)
+    if status not in [config.SOTW_IN_PROGRESS, config.SOTW_SCHEDULED]:
+        await sendMessage(context, 'Couldn\'t end the sotw - one is not currently running.', isAdmin=True)
+        return
 
     sotwCompetitionId = config.get(context.guild.id, config.SOTW_COMPETITION_ID)
-    sotwData = WiseOldManApi.getSotw(12065)
+    sotwData = WiseOldManApi.getSotw(sotwCompetitionId)
     metric = sotwData['metric']
     config.set(context.guild.id, config.SOTW_PREVIOUS_SKILL, metric)
     hiscores = getSotwRanks(sotwData)
@@ -396,11 +396,11 @@ async def closesotw(context: Context):
     content += '\nPlease contact any officer for your rewards.'
     await sendMessage(context, content, isAdmin=False)
 
-    # config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_CONCLUDED)
-    # config.set(context.guild.id, config.SOTW_COMPETITION_ID, None)
-    # config.set(context.guild.id, config.SOTW_VERIFICATION_CODE, None)
-    # config.set(context.guild.id, config.SOTW_START_DATE, None)
-    # config.set(context.guild.id, config.SOTW_END_DATE, None)
+    config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_CONCLUDED)
+    config.set(context.guild.id, config.SOTW_COMPETITION_ID, None)
+    config.set(context.guild.id, config.SOTW_VERIFICATION_CODE, None)
+    config.set(context.guild.id, config.SOTW_START_DATE, None)
+    config.set(context.guild.id, config.SOTW_END_DATE, None)
 
     winner = hiscores[0][0]
     winnerId = config.getParticipant(context.guild.id, winner)
@@ -425,9 +425,9 @@ async def closesotw(context: Context):
         config.set(context.guild.id, config.CURRENT_POLL, message.id)
     else:
         content = f"""
-        The SOTW winner was not registered in discord, so I don't know who to DM. In order to create a poll for the next
-        SOTW, please choose three skills (or ask the winner to choose) and type 
-        {config.get(context.guild.id, config.COMMAND_PREFIX)}createpoll comma,separated,skills
+        The SOTW winner was not registered in discord, so I don't know who to DM for poll options. 
+        In order to create a poll for the next SOTW, please choose three skills (or ask the winner to choose) and type 
+        `{config.get(context.guild.id, config.COMMAND_PREFIX)}createpoll comma,separated,skills`
         """
         await sendMessage(context, content, isAdmin=True)
         config.set(context.guild.id, config.CURRENT_POLL, None)
