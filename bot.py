@@ -183,8 +183,8 @@ async def register(context: Context, osrsUsername: str):
     await sendMessage(context, messageContent, delete_after=30)
     await context.message.delete(delay=30)
 
-@bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
-async def setAdminRole(context: Context, role: discord.Role):
+@bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
+async def setrole(context: Context, role: discord.Role):
     """Sets the user role which can interact with the bot
     If no role is set, it will default to any role with "Admin" in the name.
     """
@@ -193,7 +193,7 @@ async def setAdminRole(context: Context, role: discord.Role):
     logger.info(f'User {context.author.name} successfully set the bot role to {role.name}')
 
 @bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
-async def setAdminChannel(context: Context, channel: discord.TextChannel):
+async def setadminchannel(context: Context, channel: discord.TextChannel):
     """This sets the channel that this bot will use for admin purposes
     If not set, the bot will simply respond in the same channel.
     The bot will still listen to all channels for commands.
@@ -202,8 +202,8 @@ async def setAdminChannel(context: Context, channel: discord.TextChannel):
     await sendMessage(context, 'Bot admin channel successfully set', isAdmin=True)
     logger.info(f'User {context.author.name} successfully set the bot channel to {channel.name}')
 
-@bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
-async def setPublicChannel(context: Context, channel: discord.TextChannel):
+@bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
+async def setpublicchannel(context: Context, channel: discord.TextChannel):
     """This sets the channel that this bot will use for admin purposes
     If not set, the bot will simply respond in the same channel.
     The bot will still listen to all channels for commands.
@@ -212,8 +212,8 @@ async def setPublicChannel(context: Context, channel: discord.TextChannel):
     await sendMessage(context, 'Bot public channel successfully set', isAdmin=True)
     logger.info(f'User {context.author.name} successfully set the bot channel to {channel.name}')
 
-@bot.command(name="settitle", checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
-async def setSOTWTitle(context: Context, SOTWtitle: str=None):
+@bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
+async def settitle(context: Context, SOTWtitle: str=None):
     """Sets the next SOTW's title
     """
     config.set(context.guild.id, config.SOTW_TITLE, SOTWtitle)
@@ -222,8 +222,8 @@ async def setSOTWTitle(context: Context, SOTWtitle: str=None):
     else:
         await sendMessage(context, 'Successfully updated SOTW title', isAdmin=True)
 
-@bot.command(name="create", checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
-async def createSOTW(context: Context, dateString: str, duration: str, metric: str=None):
+@bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
+async def createsotw(context: Context, dateString: str, duration: str, metric: str=None):
     """Schedules a SOTW event. Expects a date in descending order (YEAR/MONTH/DAY)
     This will schedule a SOTW which will start at midnight ON THAT DATE.
     So, for example, giving it the date 2022/1/1 will schedule a SOTW to start on 12:00am on January 1st, 2022.
@@ -300,8 +300,8 @@ async def createPoll(context: Context, skills: list):
     config.set(context.guild.id, config.CURRENT_POLL, poll.id)
     config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_POLL_OPENED)
 
-@bot.command(name="openpoll", checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
-async def openSOTWPoll(context: Context, skillsString: str):
+@bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
+async def openpoll(context: Context, skillsString: str):
     """Open a SOTW poll in the public channel for users to vote on the next skill.
     Expects a comma-delimited string of possible skills to choose from.
     """
@@ -312,8 +312,8 @@ async def openSOTWPoll(context: Context, skillsString: str):
 
     await createPoll(context, skillsString.split(','))
 
-@bot.command(name="closepoll", checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
-async def closeSOTWPoll(context: Context):
+@bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
+async def closepoll(context: Context):
     """Closes the current SOTW poll, if it exists.
     """
     status = config.get(context.guild.id, config.GUILD_STATUS)
@@ -336,8 +336,8 @@ async def closeSOTWPoll(context: Context):
         await sendMessage(context, f'Current poll closed. Winner: {winner}', isAdmin=True)
         await sendMessage(context, f'The SOTW poll has closed! The winner is: {winner}', isAdmin=False)
 
-@bot.command(name='setgroup', checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
-async def setSotwGroup(context: Context, groupId: int=None, groupVerificationCode: str=None):
+@bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
+async def setgroup(context: Context, groupId: int=None, groupVerificationCode: str=None):
     """Sets the custom WOM group for this discord. Optional, and if no parameters are provided, will reset the group.
     """
     config.set(context.guild.id, config.WOM_GROUP_ID, groupId)
@@ -348,8 +348,8 @@ async def setSotwGroup(context: Context, groupId: int=None, groupVerificationCod
         messageContent = 'The group ID and verification code have been saved.'
     await sendMessage(context, messageContent, isAdmin=True)
 
-@bot.command(name='deletesotw', checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
-async def deleteSotw(context: Context):
+@bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
+async def deletesotw(context: Context):
     """Deletes the current SOTW
     """
     sotwId = config.get(context.guild.id, config.SOTW_COMPETITION_ID)
@@ -369,8 +369,8 @@ async def deleteSotw(context: Context):
     else:
         await sendMessage(context, 'SOTW deletion failed - see logs', isAdmin=True)
 
-@bot.command(name='finishsotw', checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
-async def finishSotw(context: Context):
+@bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
+async def closesotw(context: Context):
     """Ends the currently running SOTW, if there is one.
     """
     # status = config.get(context.guild.id, config.GUILD_STATUS)
