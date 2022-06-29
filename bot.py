@@ -26,26 +26,32 @@ async def on_message(message):
         return
 
     if message.guild is not None:
-
         prefix = config.get(message.guild.id, config.COMMAND_PREFIX)
         prefix = prefix if prefix is not None else ''
-
         if not message.content.startswith(prefix):
             return
-
         message.content = message.content.removeprefix(prefix)
-
         await bot.process_commands(message)
         return
-
     # Handle commands given in direct messages to the bot
-    if message.guild is None:
+    else:
         guildId = config.getGuildByDmId(message.channel.id)
         if guildId is not None:
             context = await bot.get_context(message)
+            guild = bot.get_guild(int(guildId))
+            context.guild = guild
             if message.content.lower().startswith('done'):
-                guild = discord.utils.find(lambda a:a.id == int(guildId), bot.guilds)
-
+                if config.get(context.guild.id, config.GUILD_STATUS) != config.SOTW_CONCLUDED:
+                    return
+                poll = await context.channel.fetch_message(config.get(context.guild.id, config.CURRENT_POLL))
+                skills = config.SOTW_SKILLS.copy()
+                skills.remove(config.get(context.guild.id, config.SOTW_PREVIOUS_SKILL))
+                winners = sorted(
+                    [(skills[i], poll.reactions[i]) for i in range(len(skills))],
+                    key=lambda a: a[1].count,
+                    reverse=True)[:3]
+                winners = [winner[0] for winner in winners]
+                await createPoll(context, winners)
 
 def commandIsInBotPublicChannel(context: Context):
     """
@@ -97,7 +103,6 @@ async def sendMessage(context: Context, content: str, isAdmin: bool=False, delet
     channel = context.guild.get_channel(config.get(guild_id, configKey))
     if channel is None:
         channel = context.channel
-    logger.info(f'Bot sent the following message to {context.channel.name}: {content}')
     return await channel.send(content, delete_after=delete_after)
 
 def getSotwRanks(sotwData: dict):
@@ -279,22 +284,10 @@ async def createSOTW(context: Context, dateString: str, duration: str, metric: s
             verificationCode = None
         config.set(context.guild.id, config.SOTW_VERIFICATION_CODE, verificationCode)
         config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_SCHEDULED)
+        config.set(context.guild.id, config.SOTW_PREVIOUS_SKILL, metric)
 
-async def createPoll():
-    ...
-
-@bot.command(name="openpoll", checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
-async def openSOTWPoll(context: Context, skillsString: str):
-    """Open a SOTW poll in the public channel for users to vote on the next skill.
-    Expects a comma-delimited string of possible skills to choose from.
-    """
-    status = config.get(context.guild.id, config.GUILD_STATUS)
-    if status == config.SOTW_POLL_OPENED:
-        await sendMessage(context, 'There is already a poll currently running.', isAdmin=True)
-        return
-
+async def createPoll(context: Context, skills: list):
     pollContent = config.POLL_CONTENT
-    skills = skillsString.split(',')
     for i in range(len(skills)):
         pollContent += f'\n{config.POLL_REACTIONS_NUMERICAL[i]} - {skills[i].capitalize()}\n'
 
@@ -307,6 +300,18 @@ async def openSOTWPoll(context: Context, skillsString: str):
     config.set(context.guild.id, config.CURRENT_POLL, poll.id)
     config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_POLL_OPENED)
 
+@bot.command(name="openpoll", checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
+async def openSOTWPoll(context: Context, skillsString: str):
+    """Open a SOTW poll in the public channel for users to vote on the next skill.
+    Expects a comma-delimited string of possible skills to choose from.
+    """
+    status = config.get(context.guild.id, config.GUILD_STATUS)
+    if status == config.SOTW_POLL_OPENED:
+        await sendMessage(context, 'There is already a poll currently running.', isAdmin=True)
+        return
+
+    await createPoll(context, skillsString.split(','))
+
 @bot.command(name="closepoll", checks=[userCanRunAdmin, commandIsInAdminChannel], case_insensitive=True)
 async def closeSOTWPoll(context: Context):
     """Closes the current SOTW poll, if it exists.
@@ -317,16 +322,15 @@ async def closeSOTWPoll(context: Context):
     else:
         poll = await config.getGuildPublicChannel(context.guild).fetch_message(config.get(context.guild.id, config.CURRENT_POLL))
         skillsBeingPolled = config.get(context.guild.id, config.SKILLS_BEING_POLLED)
+        # Merge the reactions and skills being polled, then sort them by reaction count and extract the winner
+        winner = sorted(
+            [{'skill':skillsBeingPolled[i], 'reaction':poll.reactions[i]} for i in range(len(skillsBeingPolled))],
+            key=lambda a:a['reaction'].count,
+            reverse=True
+        )[0]['skill']
+
         config.set(context.guild.id, config.CURRENT_POLL, None)
         config.set(context.guild.id, config.SKILLS_BEING_POLLED, [])
-
-        winner = None
-        mostReactions = 0
-        for i in range(len(poll.reactions)):
-            if poll.reactions[i].count > mostReactions:
-                winner = skillsBeingPolled[i]
-                mostReactions = poll.reactions[i].count
-
         config.set(context.guild.id, config.POLL_WINNER, winner)
         config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_POLL_CLOSED)
         await sendMessage(context, f'Current poll closed. Winner: {winner}', isAdmin=True)
@@ -377,6 +381,7 @@ async def finishSotw(context: Context):
     sotwCompetitionId = config.get(context.guild.id, config.SOTW_COMPETITION_ID)
     sotwData = WiseOldManApi.getSotw(12065)
     metric = sotwData['metric']
+    config.set(context.guild.id, config.SOTW_PREVIOUS_SKILL, metric)
     hiscores = getSotwRanks(sotwData)
     sotwTitle = config.get(context.guild.id, config.SOTW_TITLE)
     content = f'{sotwTitle} has ended!\nThe winners are:'
@@ -393,7 +398,6 @@ async def finishSotw(context: Context):
     await sendMessage(context, content, isAdmin=False)
 
     # config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_CONCLUDED)
-    #
     # config.set(context.guild.id, config.SOTW_COMPETITION_ID, None)
     # config.set(context.guild.id, config.SOTW_VERIFICATION_CODE, None)
     # config.set(context.guild.id, config.SOTW_START_DATE, None)
@@ -418,6 +422,16 @@ async def finishSotw(context: Context):
 
         for i in range(len(config.SOTW_SKILLS)):
             await message.add_reaction(config.POLL_REACTIONS_ALPHABETICAL[i])
+
+        config.set(context.guild.id, config.CURRENT_POLL, message.id)
+    else:
+        content = f"""
+        The SOTW winner was not registered in discord, so I don't know who to DM. In order to create a poll for the next
+        SOTW, please choose three skills (or ask the winner to choose) and type 
+        {config.get(context.guild.id, config.COMMAND_PREFIX)}createpoll comma,separated,skills
+        """
+        await sendMessage(context, content, isAdmin=True)
+        config.set(context.guild.id, config.CURRENT_POLL, None)
 
 if __name__ == "__main__":
     bot.run(secret.TOKEN)

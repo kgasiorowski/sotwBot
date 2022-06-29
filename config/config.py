@@ -53,6 +53,7 @@ class Config:
     POLL_CONTENT = 'This is some testing poll content.\n'
     CURRENT_POLL = 'current_poll_id'
     SKILLS_BEING_POLLED = 'skills_being_polled'
+    SOTW_PREVIOUS_SKILL = 'sotw_previous_skill'
     POLL_WINNER = 'poll_winner'
 
     def __init__(self):
