@@ -140,7 +140,6 @@ async def checkSOTWStatus(context: Context):
         content += '\n Current leaders:\n-----------------------'
         for username, exp in hiscores:
             content += f'\n {username} - {exp:,} xp'
-
         content += f'\n\nFor the full competition data, click this link: https://wiseoldman.net/competitions/{sotwId}/'
         await sendMessage(context, content)
 
