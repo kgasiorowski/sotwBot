@@ -160,17 +160,13 @@ def getSOTWStatusContent(context: Context, sotwData):
     """
 
 @bot.command(check=[commandIsInBotPublicChannel])
-async def register(context: Context, osrsUsername: str):
+async def register(context: Context, *args):
     """Registers you for upcoming SOTWs
-
-    If your username has spaces in it, please surround it with quotes, or this command will not work properly.
-    Example: !register "Crotch Flame"
     """
+    osrsUsername = ' '.join(args)
     guildId = context.guild.id
     discordUserId = context.author.id
-
     config.addParticipant(guildId, osrsUsername, discordUserId)
-
     messageContent = context.author.mention + f'''
     You have been registered as {osrsUsername}.\n
     If this isn't right, you can run the command again and you will be re-registered under your new name.\n
