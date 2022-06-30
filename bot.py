@@ -25,6 +25,7 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
+    # Prefix stuff
     if message.guild is not None:
         prefix = config.get(message.guild.id, config.COMMAND_PREFIX)
         prefix = prefix if prefix is not None else ''
@@ -33,6 +34,7 @@ async def on_message(message):
         message.content = message.content.removeprefix(prefix)
         await bot.process_commands(message)
         return
+
     # Handle commands given in direct messages to the bot
     else:
         guildId = config.getGuildByDmId(message.channel.id)
@@ -58,7 +60,7 @@ def commandIsInBotPublicChannel(context: Context):
     Checks if the command was run in the public bot channel
     """
     publicChannelId = config.get(context.guild.id, config.BOT_PUBLIC_CHANNEL)
-    # If there's no admin channel, we don't care. Let the command run.
+    # If there's no public channel, we don't care. Let the command run.
     if publicChannelId is None:
         return True
     publicChannel = context.guild.get_channel(publicChannelId)
@@ -79,16 +81,11 @@ async def userCanRunAdmin(context: Context):
     """
     Determines if the user invoking the command is allowed to run admin commands.
     """
-    isAdminUser = False
     allowedRoleId = config.get(context.guild.id, config.ADMIN_ROLE)
     if allowedRoleId is None:
-        for role in context.author.roles:
-            if 'admin' in role.name.lower():
-                isAdminUser = True
-                break
+        isAdminUser = discord.utils.find(lambda role:'admin' in role.name.lower(), context.author.roles) is not None
     else:
-        allowedRole = context.guild.get_role(allowedRoleId)
-        isAdminUser = allowedRole in context.author.roles
+        isAdminUser = context.guild.get_role(allowedRoleId) in context.author.roles
 
     if not isAdminUser:
         if context.invoked_with != 'help':
