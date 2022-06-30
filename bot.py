@@ -191,41 +191,52 @@ async def setrole(context: Context, role: discord.Role):
     await sendMessage(context, 'Mod role successfully set', isAdmin=True)
     logger.info(f'User {context.author.name} successfully set the bot role to {role.name}')
 
+async def setChannel(context: Context, channelType: str, channel: discord.TextChannel):
+    if channelType == 'admin':
+        guideMessageIds = config.ADMIN_GUIDE_MESSAGE_IDS
+        channelTypeConfig = config.BOT_ADMIN_CHANNEL
+        existingChannel = config.getGuildAdminChannel(context.guild)
+        helpContent = config.ADMIN_GUIDE_MESSAGE_CONTENT
+    else:
+        guideMessageIds = config.PUBLIC_GUIDE_MESSAGE_IDS
+        channelTypeConfig = config.BOT_PUBLIC_CHANNEL
+        existingChannel = config.getGuildPublicChannel(context.guild)
+        helpContent = config.PUBLIC_GUIDE_MESSAGE_CONTENT
+
+    if existingChannel is not None:
+        helpMessageIds = config.get(context.guild.id, guideMessageIds)
+        for messageId in helpMessageIds:
+            existingHelpMessage = await existingChannel.fetch_message(messageId)
+            if existingHelpMessage is not None:
+                await existingHelpMessage.delete()
+    config.set(context.guild.id, channelTypeConfig, channel.id)
+    helpMessage = await sendMessage(context, helpContent, isAdmin=channelType == 'admin')
+
+    await helpMessage.pin()
+
+    config.set(
+        context.guild.id,
+        guideMessageIds,
+        [helpMessage.id, helpMessage.channel.last_message_id]
+    )
+
+    await sendMessage(context, f'{channelTypeConfig.capitalize()} channel successfully updated', isAdmin=channelType == 'admin', delete_after=30)
+    await context.message.delete(delay=30)
+    logger.info(f'User {context.author.name} successfully set the bot channel to {channel.name}')
+
 @bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
 async def setadminchannel(context: Context, channel: discord.TextChannel):
     """This sets the channel that this bot will use for admin purposes
     If not set, the bot will simply respond in the same channel.
     """
-    adminChannel = config.getGuildAdminChannel(context.guild)
-    if adminChannel is not None:
-        adminHelpMessageIds = config.get(context.guild.id, config.ADMIN_GUIDE_MESSAGE_IDS)
-        for messageId in adminHelpMessageIds:
-            existingHelpMessage = await adminChannel.fetch_message(messageId)
-            if existingHelpMessage is not None:
-                await existingHelpMessage.delete()
-    config.set(context.guild.id, config.BOT_ADMIN_CHANNEL, channel.id)
-    helpMessage = await sendMessage(context, 'Eventually this will be the admin help message', isAdmin=True)
-
-    await helpMessage.pin()
-    config.set(
-        context.guild.id,
-        config.ADMIN_GUIDE_MESSAGE_IDS,
-        [helpMessage.id, config.getGuildAdminChannel(context.guild).last_message_id]
-    )
-
-    await sendMessage(context, config.ADMIN_GUIDE_MESSAGE_CONTENT, isAdmin=True, delete_after=30)
-    await context.message.delete(delay=30)
-    logger.info(f'User {context.author.name} successfully set the bot channel to {channel.name}')
+    await setChannel(context, 'admin', channel)
 
 @bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
 async def setpublicchannel(context: Context, channel: discord.TextChannel):
     """This sets the channel that this bot will use for admin purposes
     If not set, the bot will simply respond in the same channel.
-    The bot will still listen to all channels for commands.
     """
-    config.set(context.guild.id, config.BOT_PUBLIC_CHANNEL, channel.id)
-    await sendMessage(context, 'Bot public channel successfully set', isAdmin=True)
-    logger.info(f'User {context.author.name} successfully set the bot channel to {channel.name}')
+    await setChannel(context, 'public', channel)
 
 @bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
 async def settitle(context: Context, SOTWtitle: str=None):
