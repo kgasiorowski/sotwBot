@@ -57,12 +57,15 @@ class Config:
     POLL_WINNER = 'poll_winner'
 
     def __init__(self):
-        with open('./config/config.json', 'r') as configFile:
-            self.configs = json.load(configFile)
+        self.load()
 
     def save(self):
         with open('./config/config.json', 'w') as configFile:
             json.dump(self.configs, configFile)
+
+    def load(self):
+        with open('./config/config.json', 'r') as configFile:
+            self.configs = json.load(configFile)
 
     def set(self, guildId: str, key, value):
         guildId = str(guildId)
