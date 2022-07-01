@@ -327,16 +327,16 @@ async def createPoll(context: Context, skills: list):
     config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_POLL_OPENED)
 
 @bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
-async def openpoll(context: Context, skillsString: str):
+async def openpoll(context: Context, *args):
     """Open a SOTW poll in the public channel for users to vote on the next skill.
-    Expects a comma-delimited string of possible skills to choose from.
+    Expects space separated skills after the commad.
     """
     status = config.get(context.guild.id, config.GUILD_STATUS)
     if status == config.SOTW_POLL_OPENED:
         await sendMessage(context, 'There is already a poll currently running.', isAdmin=True)
         return
 
-    await createPoll(context, skillsString.split(','))
+    await createPoll(context, list(args))
 
 @bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
 async def closepoll(context: Context):

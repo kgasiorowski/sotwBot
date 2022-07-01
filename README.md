@@ -23,12 +23,16 @@
 - `setadminchannel #<channel>` - sets the channel in which admins can interact with the bot. If it's not set, then admins can interact with it anywhere
 - `setpublichannel #<channel>` - sets the channel in which general discord members can interact with the bot. If not set, the bot will listen in all channels and respond everywhere.
 - `settitle <SOTW title>` - sets the title for the next SOTW that is created
-- `setgroup <group id> <verification code>` - sets the group for the sotw. (Optional)
+- `setgroup <group id> <verification code>` - sets the player group for the sotw. (Optional)
+- `openpoll <skills>` - opens a poll for users to vote on the next skill of the week skill. Expects skills after the command, for example: `openpoll woodcutting fishing thieving`.
+- `closepoll` - closes the currently opened poll, records, the winner, and saves it to the configs. When the next sotw is created, this skill will be automatically chosen.
 - `createsotw <date> <duration> <skill>` - schedules a SOTW to start on the given day, with the given duration, for the given skill. 
   - `<date>` is expected to be in descending order, or, `YYYY/MM/DD`
   - `<duration>` is expected to be something like the following
     - 1d - signifies one day
     - 2w - signifies two weeks
     - etc
-  - `<skill>` is the skill that this SOTW will be. This is optional, if there was one already polled and saved. More on polls later.
+  - `<skill>` is the skill that this SOTW will be. This is optional, if there was one already polled and saved.
+- `deletesotw` - if you've accidentally created a SOTW and need to backtrack, use this command to completely delete the current SOTW for this server. Beware, this cannot be reversed by any means.
+- `closesotw` - closes the current SOTW. This congratulates the top three and pings the winner with a list of eligible skills for the next SOTW. After they've chosen, the bot automatically opens a poll which the rest of the server can vote on.
 - `reloadconfigs` - reloads configurations after they were manually changed on the server. Mostly used for development.
