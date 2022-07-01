@@ -183,7 +183,7 @@ async def reloadconfigs(context: Context):
     await sendMessage(context, 'Configuration reload successful', isAdmin=True)
 
 @bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
-async def setrole(context: Context, role: discord.Role):
+async def setadminrole(context: Context, role: discord.Role):
     """Sets the user role which can interact with the bot
     If no role is set, it will default to any role with "Admin" in the name.
     """
