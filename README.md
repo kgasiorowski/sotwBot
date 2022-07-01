@@ -34,3 +34,16 @@
 - `deletesotw` - if you've accidentally created a SOTW and need to backtrack, use this command to completely delete the current SOTW for this server. Beware, this cannot be reversed by any means.
 - `closesotw` - closes the current SOTW. This congratulates the top three and pings the winner with a list of eligible skills for the next SOTW. After they've chosen, the bot automatically opens a poll which the rest of the server can vote on.
 - `reloadconfigs` - reloads configurations after they were manually changed on the server. Mostly used for development.
+
+## TDLR - just let me set up a SOTW
+
+1. Read the `Setting up the bot` section above
+2. Select three skills you'd like to poll and create a poll using `openpoll` - **optional**
+3. Allow the server to vote on the proposed skills for a few days - **optional**
+4. Close the poll with `closepoll`, this will automatically check for the most voted for skill and save it for later - **optional**
+5. Give your SOTW a title with `settitle`
+6. Create the SOTW with `createsotw` (if you didn't poll a skill earlier, you can just pass one in with this command)
+7. Wait for the SOTW to end
+8. End the sotw with `closesotw`
+9. The bot will directly message the winner of the event and allow them to choose the poll options for the next event.
+10. Go back to step 3.
