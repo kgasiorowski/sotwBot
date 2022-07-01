@@ -1,15 +1,13 @@
 # Skill of the Week bot
 #### Author: kgasiorowski
 
----
-
 ## Setting up the bot
 1. Invite the bot to your discord server [here](https://www.google.com) 
 2. Set the prefix you'd like to use for this bot using `setprefix <prefix>`
 3. Use `setadminchannnel` and `setadminrole` to set the admin channel and role, respectively, for the bot. If you dont set these then anyone will be able to run any command from anywhere.
 4. Use `setpublicchannel` to set the public bot channel.
 5. Read the rest of this document to familiarize yourself with the commands available to admins and general users.
----
+
 ## Commands
 ### General
 
@@ -29,8 +27,8 @@
 - `createsotw <date> <duration> <skill>` - schedules a SOTW to start on the given day, with the given duration, for the given skill. 
   - `<date>` is expected to be in descending order, or, `YYYY/MM/DD`
   - `<duration>` is expected to be something like the following
-    - 1d - signifies one day
-    - 2w - signifies two weeks
+    - `1d` - signifies one day
+    - `2w` - signifies two weeks
     - etc
   - `<skill>` is the skill that this SOTW will be. This is optional, if there was one already polled and saved.
 - `deletesotw` - if you've accidentally created a SOTW and need to backtrack, use this command to completely delete the current SOTW for this server. Beware, this cannot be reversed by any means.
