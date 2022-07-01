@@ -61,6 +61,7 @@ class Config:
     POLL_WINNER = 'poll_winner'
 
     def __init__(self):
+        self.configs = None
         self.load()
 
     def save(self):
@@ -107,7 +108,7 @@ class Config:
         if username not in self.configs[guildId]['participants']:
             return None
 
-        return self.configs[guildId]['participants'][username];
+        return self.configs[guildId]['participants'][username]
 
 
     def getParticipantList(self, guildId: str):
