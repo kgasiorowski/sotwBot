@@ -238,6 +238,16 @@ async def setpublicchannel(context: Context, channel: discord.TextChannel):
     """
     await setChannel(context, 'public', channel)
 
+@bot.command(checks=[commandIsInBotPublicChannel])
+async def refresh(context: Context):
+    """This refreshes each player in the competition.
+    Will do nothing if the competition is already up-to-date.
+    """
+    sotwId = config.get(context.guild.id, config.SOTW_COMPETITION_ID)
+    verificationCode = config.get(context.guild.id, config.SOTW_VERIFICATION_CODE)
+    WiseOldManApi.updateAllParticipants(sotwId, verificationCode)
+    await sendMessage(context, 'The competition has been refreshed.', isAdmin=False)
+
 @bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
 async def settitle(context: Context, SOTWtitle: str=None):
     """Sets the next SOTW's title

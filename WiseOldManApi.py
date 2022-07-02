@@ -52,3 +52,10 @@ def getSotw(sotwId: int):
         return False
     else:
         return json.loads(response.content.decode())
+
+def updateAllParticipants(sotwId: int, verificationCode: str):
+    endpoint = f'/competitions/{sotwId}/update-all'
+    requestUrl = url + endpoint
+    params = {'verificationCode':verificationCode}
+    response = requests.post(requestUrl, data=params)
+    return response.status_code < 300
