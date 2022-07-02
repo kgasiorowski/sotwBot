@@ -127,13 +127,13 @@ async def checkSOTWStatus(context: Context):
     elif status == config.SOTW_SCHEDULED:
         sotwId = config.get(context.guild.id, config.SOTW_COMPETITION_ID)
         sotwData = WiseOldManApi.getSotw(sotwId)
-        content = getSOTWStatusContent(context, sotwData)
+        content = getSOTWStatusContent(sotwData)
         await sendMessage(context, 'There is a SOTW planned, but not yet started.' + content)
     elif status == config.SOTW_IN_PROGRESS:
         sotwId = config.get(context.guild.id, config.SOTW_COMPETITION_ID)
         sotwData = WiseOldManApi.getSotw(sotwId)
         hiscores = getSotwRanks(sotwData)[:3]
-        content = 'There is a SOTW event currently in progress.' + getSOTWStatusContent(context, sotwData)
+        content = 'There is a SOTW event currently in progress.' + getSOTWStatusContent(sotwData)
         content += '\n Current leaders:\n-----------------------'
         for username, exp in hiscores:
             content += f'\n {username} - {exp:,} xp'
@@ -143,7 +143,7 @@ async def checkSOTWStatus(context: Context):
     elif status == config.SOTW_CONCLUDED:
         await sendMessage(context, 'The last SOTW event has concluded.')
 
-def getSOTWStatusContent(context: Context, sotwData):
+def getSOTWStatusContent(sotwData: dict):
     rawDateFormat = '%Y-%m-%dT%H:%M:%S.%fZ'
     desiredDateFormat = '%B %d, %I%p GMT (%A)'
 
@@ -154,9 +154,10 @@ def getSOTWStatusContent(context: Context, sotwData):
     endDate = datetime.strptime(rawEndDateString, rawDateFormat).strftime(desiredDateFormat)
 
     return f"""
-    Skill: {config.get(context.guild.id, config.POLL_WINNER)}
+    Skill: {sotwData['metric']}
     Start date: {startDate}
     End date: {endDate}
+    URL: https://wiseoldman.net/competitions/{sotwData['id']}
     """
 
 @bot.command(check=[commandIsInBotPublicChannel])
@@ -311,6 +312,8 @@ async def createsotw(context: Context, dateString: str, duration: str, metric: s
         await sendMessage(context, 'There was an error with the api. Please check the logs.', isAdmin=True)
     else:
         await sendMessage(context, 'SOTW successfully scheduled. Type !status in the public channel to see the current SOTW status.', isAdmin=True)
+        await sendMessage(context, 'The next skill of the week has been scheduled!' + getSOTWStatusContent(response), isAdmin=False)
+
         config.set(context.guild.id, config.SOTW_COMPETITION_ID, response['id'])
         config.set(context.guild.id, config.SOTW_START_DATE, response['startsAt'])
         config.set(context.guild.id, config.SOTW_END_DATE, response['endsAt'])
