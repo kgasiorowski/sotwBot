@@ -250,14 +250,15 @@ async def refresh(context: Context):
     await sendMessage(context, 'The competition has been refreshed.', isAdmin=False)
 
 @bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
-async def settitle(context: Context, SOTWtitle: str=None):
+async def settitle(context: Context, *args):
     """Sets the next SOTW's title
     """
+    SOTWtitle = ' '.join(args)
     config.set(context.guild.id, config.SOTW_TITLE, SOTWtitle)
     if SOTWtitle is None:
         await sendMessage(context, 'Successfully reset SOTW title', isAdmin=True)
     else:
-        await sendMessage(context, 'Successfully updated SOTW title', isAdmin=True)
+        await sendMessage(context, f'Successfully updated SOTW title to {SOTWtitle}', isAdmin=True)
 
 @bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
 async def createsotw(context: Context, dateString: str, duration: str, metric: str=None):
