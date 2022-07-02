@@ -12,8 +12,8 @@ class Config:
     PERMISSION_ERROR_MESSAGE = 'You lack the required role to interact with this bot.'
     ADMIN_GUIDE_MESSAGE_IDS = 'admin_guide_message_ids'
     PUBLIC_GUIDE_MESSAGE_IDS = 'public_guide_message_ids'
-    ADMIN_GUIDE_MESSAGE_CONTENT = 'This eventually will be the admin help message'
-    PUBLIC_GUIDE_MESSAGE_CONTENT = 'This eventually will be the public help message'
+    ADMIN_GUIDE_MESSAGE_CONTENT = 'See here for all of the commads available to admin users: https://github.com/kgasiorowski/sotwBot#admin'
+    PUBLIC_GUIDE_MESSAGE_CONTENT = 'See here for all of the commands available to general users: https://github.com/kgasiorowski/sotwBot#general'
     SOTW_SKILLS = ['agility',
                    'construction',
                    'cooking',

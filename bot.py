@@ -221,7 +221,7 @@ async def setChannel(context: Context, channelType: str, channel: discord.TextCh
         [helpMessage.id, helpMessage.channel.last_message_id]
     )
 
-    await sendMessage(context, f'{channelTypeConfig.capitalize()} channel successfully updated', isAdmin=channelType == 'admin', delete_after=30)
+    await sendMessage(context, f'{channelType.capitalize()} channel successfully updated', isAdmin=True, delete_after=10)
     await context.message.delete(delay=30)
     logger.info(f'User {context.author.name} successfully set the bot channel to {channel.name}')
 
