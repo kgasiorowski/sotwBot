@@ -2,7 +2,7 @@
 #### Author: kgasiorowski
 
 ## Setting up the bot
-1. Invite the bot to your discord server [here](https://www.google.com) 
+1. Invite the bot to your discord server [here](https://discord.com/api/oauth2/authorize?client_id=978717123104899183&permissions=268512320&scope=bot) 
 2. Set the prefix you'd like to use for this bot using `setprefix <prefix>`
 3. Use `setadminchannnel` and `setadminrole` to set the admin channel and role, respectively, for the bot. If you dont set these then anyone will be able to run any command from anywhere.
 4. Use `setpublicchannel` to set the public bot channel.
