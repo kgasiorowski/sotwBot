@@ -13,6 +13,7 @@
 
 - `register <username>` - links the discord user to a runescape username
 - `status` - reports the current SOTW status
+- `refresh` - refreshes all of the participants in the current SOTW
 
 ### Admin
 
