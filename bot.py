@@ -340,7 +340,7 @@ async def createPoll(context: Context, skills: list):
     config.set(context.guild.id, config.CURRENT_POLL, poll.id)
     config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_POLL_OPENED)
 
-@bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
+@bot.command(name="createpoll", checks=[userCanRunAdmin, commandIsInAdminChannel])
 async def openpoll(context: Context, *args):
     """Open a SOTW poll in the public channel for users to vote on the next skill.
     Expects space separated skills after the commad.
