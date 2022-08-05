@@ -7,7 +7,7 @@ from config import config
 from utils import logger
 from datetime import datetime
 from datetime import timedelta
-import WiseOldManApi
+from api import WiseOldManApi
 
 intents = discord.Intents.default()
 intents.members = True
