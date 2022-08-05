@@ -135,16 +135,15 @@ async def checkSOTWStatus(context: Context):
     elif status == config.SOTW_IN_PROGRESS:
         sotwId = config.get(context.guild.id, config.SOTW_COMPETITION_ID)
         sotwData = WiseOldManApi.getSotw(sotwId)
-        hiscores = getSotwRanks(sotwData)[:3]
+        hiscores = getSotwRanks(sotwData)[:10]
         content = 'There is a SOTW event currently in progress.' + getSOTWStatusContent(sotwData)
         content += '\n Current leaders:\n-----------------------'
         for username, exp in hiscores:
             content += f'\n {username} - {exp:,} xp'
         content += f'\n\nFor the full competition data, click this link: https://wiseoldman.net/competitions/{sotwId}/'
         await sendMessage(context, content)
-
     elif status == config.SOTW_CONCLUDED:
-        await sendMessage(context, 'The last SOTW event has concluded.')
+        await sendMessage(context, 'The previous SOTW event has concluded.')
 
 def getSOTWStatusContent(sotwData: dict):
     rawDateFormat = '%Y-%m-%dT%H:%M:%S.%fZ'
