@@ -108,6 +108,9 @@ def getSotwRanks(sotwData: dict):
 
 @bot.command(name="setprefix", checks=[userCanRunAdmin, commandIsInAdminChannel])
 async def setprefix(context: Context, prefix: str):
+    """Sets the prefix this bot will use.
+    If not set, the bot will attempt to parse every message regardless of the prefix given.
+    """
     config.set(context.guild.id, config.COMMAND_PREFIX, prefix)
     await sendMessage(context, f'Prefix successfully updated to {prefix}', isAdmin=True)
 
