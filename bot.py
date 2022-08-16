@@ -46,6 +46,12 @@ async def on_message(message):
                 if config.get(context.guild.id, config.GUILD_STATUS) != config.SOTW_CONCLUDED:
                     return
                 poll = await context.channel.fetch_message(config.get(context.guild.id, config.CURRENT_POLL))
+
+                skillsVotedForCounter = len(list(filter(lambda reaction: reaction.count >= 1, poll.reactions)))
+                if skillsVotedForCounter < 3:
+                    await message.channel.send('It seems like you haven\'t picked three skills yet. Please add your reactions and try again.')
+                    return
+
                 skills = config.SOTW_SKILLS.copy()
                 skills.remove(config.get(context.guild.id, config.SOTW_PREVIOUS_SKILL))
                 winners = sorted(
@@ -54,6 +60,7 @@ async def on_message(message):
                     reverse=True)[:3]
                 winners = [winner[0] for winner in winners]
                 await createPoll(context, winners)
+                await message.channel.send('Thanks for your selection!')
 
 def commandIsInBotPublicChannel(context: Context):
     """
@@ -125,8 +132,8 @@ async def checkSOTWStatus(context: Context):
         config.set(guildId, config.GUILD_STATUS, config.SOTW_NONE_PLANNED)
         status = config.SOTW_NONE_PLANNED
 
-    if status == config.SOTW_NONE_PLANNED:
-        await sendMessage(context, 'There is no SOTW event planned yet.')
+    if status in [config.SOTW_NONE_PLANNED, config.SOTW_POLL_OPENED, config.SOTW_POLL_CLOSED]:
+        await sendMessage(context, 'There is no SOTW event planned yet. It might be being polled.')
     elif status == config.SOTW_SCHEDULED:
         sotwId = config.get(context.guild.id, config.SOTW_COMPETITION_ID)
         sotwData = WiseOldManApi.getSotw(sotwId)
@@ -347,11 +354,12 @@ async def openpoll(context: Context, *args):
     """Open a SOTW poll in the public channel for users to vote on the next skill.
     Expects space separated skills after the commad.
     """
-    status = config.get(context.guild.id, config.GUILD_STATUS)
-    if status == config.SOTW_POLL_OPENED:
+    if config.get(context.guild.id, config.GUILD_STATUS) == config.SOTW_POLL_OPENED and \
+            config.get(context.guild.id, config.SOTW_WINNER_DM_ID) is None:
         await sendMessage(context, 'There is already a poll currently running.', isAdmin=True)
         return
 
+    config.set(context.guild.id, config.SOTW_WINNER_DM_ID, None)
     await createPoll(context, list(args))
 
 @bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
@@ -445,12 +453,16 @@ async def closesotw(context: Context):
     config.set(context.guild.id, config.SOTW_START_DATE, None)
     config.set(context.guild.id, config.SOTW_END_DATE, None)
 
+    content = "SOTW successfully closed and winner decided. Attempting to send him a DM to choose the possible skills " \
+              f"for the next SOTW. If you want to override this, run the {config.get(context.guild.id, config.COMMAND_PREFIX)}openpoll " \
+              "command with a list of skills to open a poll manually."
+    await sendMessage(context, content, isAdmin=True)
+
     winner = hiscores[0][0]
     winnerId = config.getParticipant(context.guild.id, winner)
     if winnerId is not None:
         winner = context.guild.get_member(winnerId)
         winnerDmChannel = winner.dm_channel if winner.dm_channel is not None else await winner.create_dm()
-        config.set(context.guild.id, config.SOTW_WINNER_DM_ID, winnerDmChannel.id)
         content = f"""
         Congratulations on winning {sotwTitle}!\n
         Please choose three skill from the following list, and when you\'re done, reply in this channel with "done"
@@ -466,6 +478,7 @@ async def closesotw(context: Context):
             await message.add_reaction(config.POLL_REACTIONS_ALPHABETICAL[i])
 
         config.set(context.guild.id, config.CURRENT_POLL, message.id)
+        config.set(context.guild.id, config.SOTW_WINNER_DM_ID, winnerDmChannel.id)
     else:
         content = f"""
         The SOTW winner was not registered in discord, so I don't know who to DM for poll options. 
