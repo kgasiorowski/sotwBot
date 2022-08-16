@@ -33,13 +33,15 @@ class Config:
                    'thieving',
                    'woodcutting']
 
-    #Sotw status values
+    # Sotw status values
     SOTW_NONE_PLANNED = 'sotw_none_planned'
     SOTW_POLL_OPENED = 'sotw_poll_opened'
     SOTW_POLL_CLOSED = 'sotw_poll_closed'
     SOTW_SCHEDULED = 'sotw_scheduled'
     SOTW_IN_PROGRESS = 'sotw_in_progress'
     SOTW_CONCLUDED = 'sotw_concluded'
+
+    # SOTW variables
     SOTW_PARTICIPANTS = 'participants'
     SOTW_COMPETITION_ID = 'sotw_id'
     SOTW_START_DATE = 'sotw_start_date'
