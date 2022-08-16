@@ -166,7 +166,7 @@ def getSOTWStatusContent(sotwData: dict):
     endDate = datetime.strptime(rawEndDateString, rawDateFormat).strftime(desiredDateFormat)
 
     return f"""
-    Skill: {sotwData['metric']}
+    Skill: {sotwData['metric'].capitalize()}
     Start date: {startDate}
     End date: {endDate}
     URL: https://wiseoldman.net/competitions/{sotwData['id']}
