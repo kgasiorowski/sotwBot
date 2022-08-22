@@ -521,5 +521,18 @@ async def closesotw(context: Context):
         await sendMessage(context, content, isAdmin=True)
         config.set(context.guild.id, config.CURRENT_POLL, None)
 
+@bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
+async def startsotw(context: Context):
+    status = config.get(context.guild.id, config.GUILD_STATUS)
+    if status != config.SOTW_SCHEDULED:
+        await sendMessage(context, 'Couldn\'t start the sotw, as there is none planned', isAdmin=True)
+        return
+
+    config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_IN_PROGRESS)
+    sotwId = config.get(context.guild.id, config.SOTW_COMPETITION_ID)
+    content = 'The SOTW has begun!'
+    content += f'\n\nFor the full competition data, click this link: https://wiseoldman.net/competitions/{sotwId}/'
+    await sendMessage(context, content)
+
 if __name__ == "__main__":
     bot.run(secret.TOKEN)
