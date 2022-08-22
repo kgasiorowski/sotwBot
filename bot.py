@@ -186,6 +186,9 @@ async def register(context: Context, *args):
         await sendMessage(context, messageContent, isAdmin=False, delete_after=30)
         return
 
+    # For whatever reason, underscores get converted to spaces in WOM
+    osrsUsername = osrsUsername.replace('_', ' ')
+
     guildId = context.guild.id
     discordUserId = context.author.id
     config.addParticipant(guildId, osrsUsername, discordUserId)
