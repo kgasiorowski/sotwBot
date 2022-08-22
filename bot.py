@@ -482,8 +482,8 @@ async def closesotw(context: Context):
     content = f'{sotwTitle} has ended!\nThe winners are:'
     i = 1
     for username, exp in hiscores[:3]:
-        discordUserId = config.getParticipant(context.guild.id, username.lower())
-        content += f'\n{i}. {username} '
+        capitalizedUsername, discordUserId = config.getParticipant(context.guild.id, username.lower()) or (username, None)
+        content += f'\n{i}. {capitalizedUsername} '
         if discordUserId is not None:
             user = context.guild.get_member(discordUserId)
             content += f'({user.mention}) '
@@ -504,7 +504,7 @@ async def closesotw(context: Context):
     await sendMessage(context, content, isAdmin=True)
 
     winner = hiscores[0][0]
-    winnerId = config.getParticipant(context.guild.id, winner)
+    _, winnerId = config.getParticipant(context.guild.id, winner)
     if winnerId is not None:
         winner = context.guild.get_member(winnerId)
         winnerDmChannel = winner.dm_channel if winner.dm_channel is not None else await winner.create_dm()

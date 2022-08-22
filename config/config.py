@@ -95,7 +95,7 @@ class Config:
         for participant in list(self.configs[guildId]['participants'].keys()):
             if self.configs[guildId]['participants'][participant] == userDiscordId:
                 del self.configs[guildId]['participants'][participant]
-        self.configs[guildId]['participants'][username] = userDiscordId
+        self.configs[guildId]['participants'][username.lower()] = (username, userDiscordId)
         self.save()
 
     def getParticipant(self, guildId: str, username: str):
@@ -107,14 +107,11 @@ class Config:
         if 'participants' not in self.configs[guildId]:
             return None
 
-        lowercaseParticipants = {registeredUsername.lower():discId
-                                 for registeredUsername, discId
-                                 in self.configs[guildId]['participants'].items()}
-
-        if username not in lowercaseParticipants:
+        participantsDict = self.configs[guildId]['participants']
+        if username.lower() not in participantsDict:
             return None
 
-        return lowercaseParticipants[username]
+        return participantsDict[username.lower()]
 
     def getParticipantList(self, guildId: str):
         guildId = str(guildId)
