@@ -180,6 +180,12 @@ async def register(context: Context, *args):
     """Registers you for upcoming SOTWs
     """
     osrsUsername = ' '.join(args)
+
+    if not osrsUsername or osrsUsername.isspace():
+        messageContent = context.author.mention + ', you didn\'t give any username. Please try again with a username.'
+        await sendMessage(context, messageContent, isAdmin=False, delete_after=30)
+        return
+
     guildId = context.guild.id
     discordUserId = context.author.id
     config.addParticipant(guildId, osrsUsername, discordUserId)
