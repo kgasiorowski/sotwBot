@@ -112,7 +112,7 @@ async def sendMessage(context: Context, content: str, isAdmin: bool=False, delet
 
 def getSotwRanks(sotwData: dict):
     sortedParticipants = sorted(sotwData['participants'], key=lambda a: a['progress']['gained'], reverse=True)
-    return [(a['username'], a['progress']['gained']) for a in sortedParticipants]
+    return [(a['displayName'], a['progress']['gained']) for a in sortedParticipants]
 
 @bot.command(name="setprefix", checks=[userCanRunAdmin, commandIsInAdminChannel])
 async def setprefix(context: Context, prefix: str):
