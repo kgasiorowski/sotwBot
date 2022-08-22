@@ -150,6 +150,8 @@ async def checkSOTWStatus(context: Context):
         content += '\n Current leaders:\n-----------------------'
         counter = 1
         for username, exp in hiscores:
+            if exp <= 0:
+                break
             content += f'\n{counter}. {username} - {exp:,} xp'
             counter += 1
         await sendMessage(context, content)
