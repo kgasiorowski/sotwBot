@@ -133,3 +133,15 @@ class Config:
                 continue
             if data[self.SOTW_WINNER_DM_ID] == userDmId:
                 return key
+
+    # To be removed after being run once
+    def convert(self, guildId: str):
+        self.load()
+        guildId = str(guildId)
+        x = self.configs[guildId]['participants']
+
+        # capitalizedUser:id -> user:(capitalizedUser,id)
+        y = {capitalizedUser.lower():(capitalizedUser, discId) for capitalizedUser,discId in x.items()}
+
+        self.configs[guildId]['participants'] = y
+        self.save()
