@@ -148,9 +148,10 @@ async def checkSOTWStatus(context: Context):
         hiscores = getSotwRanks(sotwData)[:10]
         content = 'There is a SOTW event currently in progress.' + getSOTWStatusContent(sotwData)
         content += '\n Current leaders:\n-----------------------'
+        counter = 1
         for username, exp in hiscores:
-            content += f'\n {username} - {exp:,} xp'
-        content += f'\n\nFor the full competition data, click this link: https://wiseoldman.net/competitions/{sotwId}/'
+            content += f'\n{counter}. {username} - {exp:,} xp'
+            counter += 1
         await sendMessage(context, content)
     elif status == config.SOTW_CONCLUDED:
         await sendMessage(context, 'The previous SOTW event has concluded.')
