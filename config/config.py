@@ -107,11 +107,14 @@ class Config:
         if 'participants' not in self.configs[guildId]:
             return None
 
-        if username not in self.configs[guildId]['participants']:
+        lowercaseParticipants = {registeredUsername.lower():discId
+                                 for registeredUsername, discId
+                                 in self.configs[guildId]['participants'].items()}
+
+        if username not in lowercaseParticipants:
             return None
 
-        return self.configs[guildId]['participants'][username]
-
+        return lowercaseParticipants[username]
 
     def getParticipantList(self, guildId: str):
         guildId = str(guildId)

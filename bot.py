@@ -482,7 +482,7 @@ async def closesotw(context: Context):
     content = f'{sotwTitle} has ended!\nThe winners are:'
     i = 1
     for username, exp in hiscores[:3]:
-        discordUserId = config.getParticipant(context.guild.id, username)
+        discordUserId = config.getParticipant(context.guild.id, username.lower())
         content += f'\n{i}. {username} '
         if discordUserId is not None:
             user = context.guild.get_member(discordUserId)
