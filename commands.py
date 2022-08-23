@@ -1,6 +1,5 @@
 import discord
 import discord.utils
-from discord.ext import commands
 from discord.ext.commands.context import Context
 import secret
 from config import config
@@ -8,12 +7,13 @@ from utils import logger
 from datetime import datetime
 from datetime import timedelta
 from api import WiseOldManApi
+from SOTWBot import SOTWBot
 
 intents = discord.Intents.default()
 intents.members = True
-bot = commands.Bot(command_prefix='', description='Skill of the Week Bot', intents=intents)
+bot = SOTWBot(command_prefix='', description='Skill of the Week Bot', intents=intents)
 config = config.Config()
-logger = logger.initLogger()
+logger = logger.getLogger()
 
 @bot.event
 async def on_ready():

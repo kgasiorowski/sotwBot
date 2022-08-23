@@ -1,6 +1,14 @@
 import logging
 import logging.config
 
+logger = None
+
+def getLogger():
+    global logger
+    if logger is None:
+        logger = initLogger()
+    return logger
+
 def initLogger():
     logger = logging.getLogger('newbs_bot')
     logger.setLevel(logging.DEBUG)
