@@ -546,10 +546,5 @@ async def startsotw(context: Context):
     content += f'\n\nFor the full competition data, click this link: https://wiseoldman.net/competitions/{sotwId}/'
     await sendMessage(context, content)
 
-# temporary
-@bot.command()
-async def temp(context: Context):
-    config.convert(context.guild.id)
-
 if __name__ == "__main__":
     bot.run(secret.TOKEN)
