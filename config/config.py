@@ -95,7 +95,7 @@ class Config:
         for participant in list(self.configs[guildId]['participants'].keys()):
             if self.configs[guildId]['participants'][participant] == userDiscordId:
                 del self.configs[guildId]['participants'][participant]
-        self.configs[guildId]['participants'][username.lower()] = (username, userDiscordId)
+        self.configs[guildId]['participants'][username.lower().replace('_',' ')] = (username, userDiscordId)
         self.save()
 
     def getParticipant(self, guildId: str, username: str):
