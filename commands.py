@@ -442,7 +442,7 @@ async def cancelPoll(context: Context):
             logger.warning('Bot tried to delete a poll which was already deleted.')
         config.set(context.guild.id, config.CURRENT_POLL, None)
         config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_NONE_PLANNED)
-        await sendMessage(context, 'The poll has been canceled.', isAdmin=False)
+        await sendMessage(context, 'The poll has been canceled.', isAdmin=True)
 
 @bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
 async def setgroup(context: Context, groupId: int=None, groupVerificationCode: str=None):
