@@ -434,8 +434,9 @@ async def cancelPoll(context: Context):
     if status != config.SOTW_POLL_OPENED:
         await sendMessage(context, 'There\'s no poll currently running.', isAdmin=True)
     else:
-        poll = await config.getGuildPublicChannel(context.guild).fetch_message(config.get(context.guild.id, config.CURRENT_POLL))
         try:
+            poll = await config.getGuildPublicChannel(context.guild).fetch_message(
+                config.get(context.guild.id, config.CURRENT_POLL))
             await poll.delete()
         except:
             logger.warning('Bot tried to delete a poll which was already deleted.')
