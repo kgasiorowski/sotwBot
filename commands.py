@@ -426,6 +426,23 @@ async def closepoll(context: Context):
         await sendMessage(context, f'The SOTW poll has closed! The winner is: {winner}', isAdmin=False)
 
 @bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
+async def cancelPoll(context: Context):
+    """Closes the current SOTW poll, if it exists.
+    """
+    status = config.get(context.guild.id, config.GUILD_STATUS)
+    if status != config.SOTW_POLL_OPENED:
+        await sendMessage(context, 'There\'s no poll currently running.', isAdmin=True)
+    else:
+        poll = await config.getGuildPublicChannel(context.guild).fetch_message(config.get(context.guild.id, config.CURRENT_POLL))
+        try:
+            await poll.delete()
+        except:
+            logger.warning('Bot tried to delete a poll which was already deleted.')
+        config.set(context.guild.id, config.CURRENT_POLL, None)
+        config.set(context.guild.id, config.GUILD_STATUS, config.SOTW_NONE_PLANNED)
+        await sendMessage(context, 'The poll has been canceled.', isAdmin=False)
+
+@bot.command(checks=[userCanRunAdmin, commandIsInAdminChannel])
 async def setgroup(context: Context, groupId: int=None, groupVerificationCode: str=None):
     """Sets the custom WOM group for this discord. Optional, and if no parameters are provided, will reset the group.
     """
