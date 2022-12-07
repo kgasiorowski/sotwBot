@@ -377,6 +377,7 @@ async def createPoll(context: Context, skills: list):
     for i in range(len(skills)):
         pollContent += f'\n{config.POLL_REACTIONS_NUMERICAL[i]} - {skills[i].capitalize()}\n'
 
+    pollContent += '\n'
     poll = await sendMessage(context, pollContent)
 
     for i in range(len(skills)):
