@@ -37,6 +37,7 @@ async def on_message(message):
 
     # Handle commands given in direct messages to the bot
     else:
+        return
         guildId = config.getGuildByDmId(message.channel.id)
         if guildId is not None:
             context = await bot.get_context(message)
