@@ -56,7 +56,7 @@ class Config:
     # Poll
     POLL_REACTIONS_NUMERICAL = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']
     POLL_REACTIONS_ALPHABETICAL = [chr(i) for i in range(127462, 127462+26)]
-    POLL_CONTENT = 'This is some testing poll content.\n'
+    POLL_CONTENT = 'Please vote for your preferred skill in the poll below.\n'
     CURRENT_POLL = 'current_poll_id'
     SKILLS_BEING_POLLED = 'skills_being_polled'
     SOTW_PREVIOUS_SKILL = 'sotw_previous_skill'
