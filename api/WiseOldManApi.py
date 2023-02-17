@@ -2,7 +2,7 @@ import requests
 from datetime import datetime
 import json
 
-url = 'https://api.wiseoldman.net'
+url = 'https://api.wiseoldman.net/v2'
 
 def createSOTW(
         title: str,
