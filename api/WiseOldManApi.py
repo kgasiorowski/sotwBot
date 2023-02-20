@@ -27,7 +27,7 @@ def createSOTW(
         params.setdefault('groupId', groupId)
         params.setdefault('groupVerificationCode', groupVerificationCode)
     requestUrl = url + endpoint
-    response = requests.post(requestUrl, data=params)
+    response = requests.post(requestUrl, json=params)
 
     if response.status_code >= 300:
         return False
